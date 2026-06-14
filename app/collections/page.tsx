@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import {
   createCollection,
@@ -11,12 +10,13 @@ import {
   useStore,
   type Collection,
 } from '@/lib/store';
+import { artworkHref, studioHref } from '@/lib/links';
 import type { Artwork } from '@/lib/types';
 
-function studioHref(art: Artwork) {
-  return `/studio?src=${encodeURIComponent(art.imageUrl)}&title=${encodeURIComponent(
-    art.title,
-  )}`;
+function frameHref(art: Artwork) {
+  return art.source === 'upload'
+    ? studioHref({ id: art.id, title: art.title })
+    : studioHref({ src: art.imageUrl, title: art.title });
 }
 
 function NewCollectionForm() {
@@ -132,15 +132,15 @@ function CollectionDetail({
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {collection.items.map((art) => (
             <div key={art.id} className="group space-y-2">
-              <Link href={`/artwork/${art.sourceId}`} className="block">
+              <Link href={artworkHref(art)} className="block">
                 <div className="relative aspect-[4/5] overflow-hidden border border-stone bg-ivory">
                   {art.thumbUrl && (
-                    <Image
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
                       src={art.thumbUrl}
                       alt={art.title}
-                      fill
-                      sizes="(max-width: 640px) 50vw, 20vw"
-                      className="object-cover"
+                      loading="lazy"
+                      className="absolute inset-0 h-full w-full object-cover"
                     />
                   )}
                 </div>
@@ -148,7 +148,7 @@ function CollectionDetail({
               <p className="truncate text-xs text-ink-soft">{art.artist}</p>
               <div className="flex items-center gap-3 text-xs">
                 {art.isPublicDomain ? (
-                  <Link href={studioHref(art)} className="text-brass hover:underline">
+                  <Link href={frameHref(art)} className="text-brass hover:underline">
                     Frame for TV
                   </Link>
                 ) : (
@@ -209,12 +209,12 @@ export default function CollectionsPage() {
                   >
                     <div className="relative aspect-[4/3] overflow-hidden border border-stone bg-ivory">
                       {cover?.thumbUrl ? (
-                        <Image
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
                           src={cover.thumbUrl}
                           alt=""
-                          fill
-                          sizes="(max-width: 640px) 50vw, 25vw"
-                          className="object-cover transition-transform duration-700 ease-gallery group-hover:scale-[1.04]"
+                          loading="lazy"
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-gallery group-hover:scale-[1.04]"
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center text-xs uppercase tracking-label text-ink-soft">

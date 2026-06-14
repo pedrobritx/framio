@@ -1,4 +1,4 @@
-export type ArtSource = 'met' | 'upload';
+export type ArtSource = 'met' | 'aic' | 'cma' | 'upload';
 
 /** Canonical artwork shape used across the app (museum works and user uploads). */
 export interface Artwork {

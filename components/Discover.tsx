@@ -1,72 +1,79 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import ArtworkCard from '@/components/ArtworkCard';
 import { SearchIcon } from '@/components/icons';
+import { artworkHref } from '@/lib/links';
 import {
+  ARTISTS,
   CULTURES,
-  DEPARTMENTS,
   MEDIUMS,
   PERIODS,
   SCHOOLS,
   TOPICS,
 } from '@/lib/facets';
-import { fetchObjects, searchIds, type SearchFilters } from '@/lib/metClient';
+import {
+  ALL_SOURCES,
+  SOURCES,
+  searchArtworks,
+  type MuseumSource,
+  type SearchCursor,
+  type SearchQuery,
+} from '@/lib/sources';
 import type { Artwork } from '@/lib/types';
-
-const PAGE_SIZE = 24;
 
 type State = {
   text: string;
+  artist: string | null;
   school: string | null;
   topic: string | null;
   culture: string | null;
   periodIndex: number | null;
-  departmentId: number | null;
   medium: string | null;
+  sources: MuseumSource[];
   publicDomainOnly: boolean;
 };
 
 const INITIAL: State = {
   text: '',
+  artist: null,
   school: null,
   topic: null,
   culture: null,
   periodIndex: null,
-  departmentId: null,
   medium: null,
+  sources: [...ALL_SOURCES],
   publicDomainOnly: true,
 };
 
 /** Quick-start suggestions for the resting (no-query) state. */
+const QUICK_ARTISTS = ARTISTS.slice(0, 8);
 const QUICK_SCHOOLS = SCHOOLS.slice(0, 6);
 const QUICK_TOPICS = TOPICS.slice(0, 5);
 
-function toFilters(s: State): SearchFilters {
+function toQuery(s: State): SearchQuery {
   const topicQ = s.topic ? TOPICS.find((t) => t.label === s.topic)?.q : undefined;
-  const q = [s.text.trim(), s.school, topicQ].filter(Boolean).join(' ');
+  const q = [s.text.trim(), s.school, topicQ].filter(Boolean).join(' ').trim();
   const period = s.periodIndex != null ? PERIODS[s.periodIndex] : undefined;
   return {
     q,
-    artistOrCulture: s.culture ?? undefined,
+    artistOrCulture: s.artist ?? s.culture ?? undefined,
     medium: s.medium ?? undefined,
-    departmentId: s.departmentId ?? undefined,
     dateBegin: period?.begin,
     dateEnd: period?.end,
     publicDomainOnly: s.publicDomainOnly,
+    sources: s.sources,
   };
 }
 
-/** Count of structured filters in play (text is tracked separately). */
 function countFilters(s: State): number {
   return (
+    (s.artist ? 1 : 0) +
     (s.school ? 1 : 0) +
     (s.topic ? 1 : 0) +
     (s.culture ? 1 : 0) +
     (s.periodIndex != null ? 1 : 0) +
-    (s.departmentId != null ? 1 : 0) +
     (s.medium ? 1 : 0)
   );
 }
@@ -74,15 +81,12 @@ function countFilters(s: State): number {
 /** The selected filters, as removable summary pills. */
 function activeFilters(s: State): { key: keyof State; label: string }[] {
   const out: { key: keyof State; label: string }[] = [];
+  if (s.artist) out.push({ key: 'artist', label: s.artist });
   if (s.school) out.push({ key: 'school', label: s.school });
   if (s.topic) out.push({ key: 'topic', label: s.topic });
   if (s.culture) out.push({ key: 'culture', label: s.culture });
   if (s.periodIndex != null)
     out.push({ key: 'periodIndex', label: PERIODS[s.periodIndex].label });
-  if (s.departmentId != null) {
-    const d = DEPARTMENTS.find((x) => x.id === s.departmentId);
-    if (d) out.push({ key: 'departmentId', label: d.label });
-  }
   if (s.medium) out.push({ key: 'medium', label: s.medium });
   return out;
 }
@@ -135,25 +139,26 @@ export default function Discover({
 }) {
   const [state, setState] = useState<State>(INITIAL);
   const [items, setItems] = useState<Artwork[]>([]);
-  const [ids, setIds] = useState<number[]>([]);
-  const [cursor, setCursor] = useState(0);
+  const [cursor, setCursor] = useState<SearchCursor | undefined>(undefined);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Seed from URL (?q, ?school, ?topic, ?culture) for deep links. Read on mount
-  // via the browser so the resting gallery still prerenders to static HTML.
+  // Seed from URL (?q, ?artist, ?school, ?topic, ?culture) for deep links.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q') ?? '';
+    const artist = params.get('artist');
     const school = params.get('school');
     const topic = params.get('topic');
     const culture = params.get('culture');
     setState((s) => ({
       ...s,
       text: q,
+      artist: artist && ARTISTS.includes(artist) ? artist : null,
       school: school && SCHOOLS.includes(school) ? school : null,
       topic: topic && TOPICS.some((t) => t.label === topic) ? topic : null,
       culture: culture && CULTURES.includes(culture) ? culture : null,
@@ -169,16 +174,16 @@ export default function Discover({
   const pills = activeFilters(state);
   const isSearching = state.text.trim().length > 0 || filterCount > 0;
 
-  const filters = useMemo(() => toFilters(state), [state]);
-  const filterKey = JSON.stringify(filters);
+  const query = useMemo(() => toQuery(state), [state]);
+  const queryKey = JSON.stringify(query);
 
   // Live, debounced search whenever the query or any filter changes.
   useEffect(() => {
     if (!isSearching) {
       abortRef.current?.abort();
       setItems([]);
-      setIds([]);
-      setCursor(0);
+      setCursor(undefined);
+      setHasMore(false);
       setLoading(false);
       setError(false);
       return;
@@ -190,35 +195,47 @@ export default function Discover({
       abortRef.current = ac;
       setLoading(true);
       setError(false);
-      const found = await searchIds(filters, ac.signal);
-      if (!active || ac.signal.aborted) return;
-      const firstPage = await fetchObjects(found.slice(0, PAGE_SIZE), ac.signal);
-      if (!active || ac.signal.aborted) return;
-      setIds(found);
-      setItems(firstPage);
-      setCursor(Math.min(PAGE_SIZE, found.length));
-      setError(found.length === 0 ? false : firstPage.length === 0);
-      setLoading(false);
+      try {
+        const res = await searchArtworks(query, undefined, ac.signal);
+        if (!active || ac.signal.aborted) return;
+        setItems(res.artworks);
+        setCursor(res.cursor);
+        setHasMore(res.hasMore);
+        setError(false);
+      } catch {
+        if (!active || ac.signal.aborted) return;
+        setError(true);
+      } finally {
+        if (active && !ac.signal.aborted) setLoading(false);
+      }
     }, 300);
     return () => {
       active = false;
       clearTimeout(t);
     };
-  }, [filterKey, filters, isSearching]);
+  }, [queryKey, query, isSearching]);
 
   async function loadMore() {
-    if (loadingMore || cursor >= ids.length) return;
+    if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     const ac = new AbortController();
-    const slice = ids.slice(cursor, cursor + PAGE_SIZE);
-    const more = await fetchObjects(slice, ac.signal);
-    setItems((prev) => [...prev, ...more]);
-    setCursor((c) => Math.min(c + PAGE_SIZE, ids.length));
-    setLoadingMore(false);
+    try {
+      const res = await searchArtworks(query, cursor, ac.signal);
+      setItems((prev) => {
+        const seen = new Set(prev.map((a) => a.id));
+        return [...prev, ...res.artworks.filter((a) => !seen.has(a.id))];
+      });
+      setCursor(res.cursor);
+      setHasMore(res.hasMore);
+    } catch {
+      /* leave the grid as-is on a transient failure */
+    } finally {
+      setLoadingMore(false);
+    }
   }
 
   function clearAll() {
-    setState(INITIAL);
+    setState({ ...INITIAL, sources: state.sources });
     setShowFilters(false);
   }
 
@@ -226,7 +243,17 @@ export default function Discover({
     update({ [key]: null } as Partial<State>);
   }
 
-  const hasMore = cursor < ids.length;
+  function toggleSource(id: MuseumSource) {
+    setState((s) => {
+      const has = s.sources.includes(id);
+      // Never let the reader switch every museum off.
+      if (has && s.sources.length === 1) return s;
+      return {
+        ...s,
+        sources: has ? s.sources.filter((x) => x !== id) : [...s.sources, id],
+      };
+    });
+  }
 
   return (
     <div className="px-6 py-8 md:px-10 md:py-12">
@@ -243,7 +270,7 @@ export default function Discover({
             type="search"
             value={state.text}
             onChange={(e) => update({ text: e.target.value })}
-            placeholder="Search by word, artist, school, period, or topic…"
+            placeholder="Search artist, movement, subject — “Monet”, “Van Gogh”, “seascape”…"
             className="min-w-0 flex-1 bg-transparent py-3.5 text-sm text-ink outline-none placeholder:text-ink-soft"
             aria-label="Search artworks"
           />
@@ -273,7 +300,32 @@ export default function Discover({
         </button>
       </div>
 
-      {/* Active filter pills — visible whether or not the panel is open */}
+      {/* Artist quick-pick — the names people actually look for */}
+      <div className="mt-4">
+        <p className="mb-2 text-xs uppercase tracking-label text-ink-soft">Artists</p>
+        <div className="flex flex-wrap gap-2">
+          {QUICK_ARTISTS.map((a) => {
+            const active = state.artist === a;
+            return (
+              <button
+                key={a}
+                type="button"
+                aria-pressed={active}
+                onClick={() => update({ artist: active ? null : a })}
+                className={`rounded-full border px-3 py-1.5 text-sm transition-colors duration-300 ease-gallery ${
+                  active
+                    ? 'border-brass bg-brass text-paper'
+                    : 'border-stone text-ink hover:border-brass hover:text-brass'
+                }`}
+              >
+                {a}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Active filter pills */}
       {pills.length > 0 && (
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {pills.map((p) => (
@@ -307,6 +359,12 @@ export default function Discover({
           className="mt-5 space-y-5 border border-stone bg-ivory/60 p-5"
         >
           <ChipRow
+            label="Artist"
+            options={ARTISTS.map((a) => ({ key: a, label: a }))}
+            value={state.artist}
+            onChange={(v) => update({ artist: v })}
+          />
+          <ChipRow
             label="School / Movement"
             options={SCHOOLS.map((s) => ({ key: s, label: s }))}
             value={state.school}
@@ -331,17 +389,36 @@ export default function Discover({
             onChange={(v) => update({ periodIndex: v == null ? null : Number(v) })}
           />
           <ChipRow
-            label="Department"
-            options={DEPARTMENTS.map((d) => ({ key: String(d.id), label: d.label }))}
-            value={state.departmentId != null ? String(state.departmentId) : null}
-            onChange={(v) => update({ departmentId: v == null ? null : Number(v) })}
-          />
-          <ChipRow
             label="Medium"
             options={MEDIUMS.map((m) => ({ key: m, label: m }))}
             value={state.medium}
             onChange={(v) => update({ medium: v })}
           />
+
+          {/* Museums to search */}
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-label text-ink-soft">Museums</p>
+            <div className="flex flex-wrap gap-2">
+              {SOURCES.map((src) => {
+                const active = state.sources.includes(src.id);
+                return (
+                  <button
+                    key={src.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => toggleSource(src.id)}
+                    className={`rounded-full border px-3 py-1.5 text-sm transition-colors duration-300 ease-gallery ${
+                      active
+                        ? 'border-brass bg-brass text-paper'
+                        : 'border-stone text-ink hover:border-brass hover:text-brass'
+                    }`}
+                  >
+                    {src.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone pt-4">
             <label className="flex items-center gap-2 text-sm text-ink">
@@ -369,7 +446,7 @@ export default function Discover({
         <section className="mt-8" aria-live="polite">
           {loading ? (
             <>
-              <p className="mb-5 text-sm text-ink-soft">Searching The Met…</p>
+              <p className="mb-5 text-sm text-ink-soft">Searching the museums…</p>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {Array.from({ length: 10 }).map((_, i) => (
                   <div
@@ -381,16 +458,19 @@ export default function Discover({
             </>
           ) : error ? (
             <p className="text-ink-soft">
-              Couldn&apos;t reach the museum just now. Try again in a moment.
+              Couldn&apos;t reach the museums just now. Try again in a moment.
             </p>
           ) : items.length === 0 ? (
             <p className="text-ink-soft">
-              No works match yet — try a different word or loosen the filters.
+              No works match yet — try a different word, another museum, or loosen
+              the filters.
             </p>
           ) : (
             <>
               <p className="mb-5 text-sm text-ink-soft">
-                {ids.length.toLocaleString()} work{ids.length === 1 ? '' : 's'} found
+                Showing {items.length.toLocaleString()} work
+                {items.length === 1 ? '' : 's'}
+                {hasMore ? ' · more available' : ''}
               </p>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {items.map((art) => (
@@ -446,15 +526,13 @@ export default function Discover({
               >
                 Artwork of the Day
               </p>
-              <Link href={`/artwork/${hero.sourceId}`} className="group block">
+              <Link href={artworkHref(hero)} className="group block">
                 <div className="relative aspect-[16/9] overflow-hidden border border-stone bg-ivory">
-                  <Image
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={hero.imageUrl}
                     alt={`${hero.title} by ${hero.artist}`}
-                    fill
-                    priority
-                    sizes="100vw"
-                    className="object-cover transition-transform duration-[1200ms] ease-gallery group-hover:scale-[1.03]"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-gallery group-hover:scale-[1.03]"
                   />
                 </div>
                 <div className="mt-4">

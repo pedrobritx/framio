@@ -1,4 +1,5 @@
 import { TARGET } from '@/lib/frame';
+import ThemeSetting from '@/components/ThemeSetting';
 
 function Field({
   label,
@@ -43,16 +44,12 @@ export default function SettingsPage() {
 
       <section className="mt-12">
         <h2 className="mb-1 text-xs uppercase tracking-label text-brass">Appearance</h2>
-        <Field
-          label="Theme"
-          value="Follows system"
-          note="Light “Gallery Wall” / Dark “Exhibition Room”."
-        />
+        <ThemeSetting />
       </section>
 
       <section className="mt-12">
         <h2 className="mb-1 text-xs uppercase tracking-label text-brass">About</h2>
-        <Field label="Sources" value="The Met · CC0" />
+        <Field label="Sources" value="The Met · Art Institute of Chicago · Cleveland · CC0" />
         <Field label="Version" value="0.1" />
       </section>
     </div>

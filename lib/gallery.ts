@@ -47,12 +47,6 @@ export async function getGallery(): Promise<Artwork[]> {
   return all;
 }
 
-/** Every source id in the showcase — the pages we pre-render. */
-export async function getGalleryIds(): Promise<string[]> {
-  const gallery = await getGallery();
-  return gallery.map((art) => art.sourceId);
-}
-
 /** The hero, chosen deterministically per day from the curated set. */
 export async function getHero(): Promise<Artwork | null> {
   const gallery = await getGallery();

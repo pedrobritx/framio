@@ -1,10 +1,12 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { TARGET, type StudioMode } from '@/lib/frame';
 import { composeCanvas } from '@/lib/studio/composeCanvas';
+import { getArtwork } from '@/lib/sources';
+import { getUpload } from '@/lib/store';
 
 const MODES: { id: StudioMode; label: string; blurb: string }[] = [
   { id: 'museumMat', label: 'Museum Mat', blurb: 'Centered on an elegant mat.' },
@@ -66,8 +68,36 @@ function Preview({
 
 function StudioInner() {
   const sp = useSearchParams();
-  const src = sp.get('src') ?? '';
-  const title = sp.get('title') ?? 'Untitled';
+  const directSrc = sp.get('src') ?? '';
+  const id = sp.get('id') ?? '';
+  const [resolvedSrc, setResolvedSrc] = useState('');
+  const [resolvedTitle, setResolvedTitle] = useState('');
+
+  // A work can arrive by direct image URL (?src=…, museum works) or by id
+  // (?id=upload:… / met:… ), resolved here client-side.
+  useEffect(() => {
+    if (directSrc || !id) return;
+    if (id.startsWith('upload:')) {
+      const up = getUpload(id);
+      if (up) {
+        setResolvedSrc(up.imageUrl);
+        setResolvedTitle(up.title);
+      }
+      return;
+    }
+    let active = true;
+    getArtwork(id).then((art) => {
+      if (!active || !art) return;
+      setResolvedSrc(art.imageUrl);
+      setResolvedTitle(art.title);
+    });
+    return () => {
+      active = false;
+    };
+  }, [directSrc, id]);
+
+  const src = directSrc || resolvedSrc;
+  const title = sp.get('title') ?? resolvedTitle ?? 'Untitled';
 
   const [mode, setMode] = useState<StudioMode>('museumMat');
   const [matKey, setMatKey] = useState('ivory');
@@ -100,6 +130,15 @@ function StudioInner() {
   }
 
   if (!src) {
+    // A work is on the way (resolving by id) — hold rather than flash the empty state.
+    if (id) {
+      return (
+        <div className="max-w-2xl px-6 py-10 md:px-10 md:py-16">
+          <p className="eyebrow">Frame Studio</p>
+          <p className="mt-5 text-ink-soft">Loading your work…</p>
+        </div>
+      );
+    }
     return (
       <div className="max-w-2xl px-6 py-10 md:px-10 md:py-16">
         <p className="eyebrow">Frame Studio</p>

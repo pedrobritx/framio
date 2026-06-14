@@ -20,9 +20,12 @@ curator that lives between the museum and your wall.
 
 ## What it does (MVP)
 
-- **Browse** The Met's Open Access collection (~406,000 CC0 artworks) — no API key required.
-- **Search** by word, school/movement (Impressionism, Pointillism, Baroque…), artist, culture,
-  period/decade, museum, medium, and topic (nature, portrait, still life…).
+- **Browse** open-access collections from **The Met**, the **Art Institute of Chicago**, and the
+  **Cleveland Museum of Art** at once — keyless, CC0, searched live from the browser.
+- **Search** by artist (one-tap Monet, Van Gogh, Vermeer…), school/movement (Impressionism,
+  Baroque…), culture, period/decade, museum, medium, and topic (nature, portrait, still life…).
+- **Bring your own image** — drop a photo, it's sized for your Frame and crops in Frame Studio.
+- **Light / dark** — a one-tap theme switch (sun/moon) in the top bar, remembered on your device.
 - **Favorite** works and organize them into **Collections** (your own "exhibitions") — the queue
   you crop in Frame Studio and send to the TV. Selections persist locally on your device.
 - **Mobile-first** layout: a left rail on desktop, a bottom tab bar on phones, proportions intact.
@@ -109,6 +112,7 @@ framio/
 
 ## Credits & rights
 
-Artwork and metadata via **The Met Open Access** program (CC0). Framio displays only works it can
+Artwork and metadata via the open-access programs of **The Met**, the **Art Institute of Chicago**,
+and the **Cleveland Museum of Art** (CC0). Framio displays only works it can
 source under open licenses; in-copyright artists are surfaced for discovery, not download. See
 [`docs/FRAME-TV.md`](docs/FRAME-TV.md#rights--licensing).

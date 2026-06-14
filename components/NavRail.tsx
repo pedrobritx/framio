@@ -10,6 +10,7 @@ import {
   SettingsIcon,
   StudioIcon,
 } from './icons';
+import ThemeToggle from './ThemeToggle';
 
 type IconType = ComponentType<{ className?: string }>;
 
@@ -70,16 +71,19 @@ export default function NavRail() {
         >
           Framio
         </Link>
-        <Link
-          href={SETTINGS.href}
-          aria-label="Settings"
-          aria-current={SETTINGS.match(pathname) ? 'page' : undefined}
-          className={`flex h-9 w-9 items-center justify-center text-xl transition-colors hover:text-ink ${
-            SETTINGS.match(pathname) ? 'text-brass' : 'text-ink-soft'
-          }`}
-        >
-          <SettingsIcon />
-        </Link>
+        <div className="flex items-center gap-1">
+          <ThemeToggle className="flex h-9 w-9 items-center justify-center text-xl text-ink-soft transition-colors hover:text-ink" />
+          <Link
+            href={SETTINGS.href}
+            aria-label="Settings"
+            aria-current={SETTINGS.match(pathname) ? 'page' : undefined}
+            className={`flex h-9 w-9 items-center justify-center text-xl transition-colors hover:text-ink ${
+              SETTINGS.match(pathname) ? 'text-brass' : 'text-ink-soft'
+            }`}
+          >
+            <SettingsIcon />
+          </Link>
+        </div>
       </header>
 
       {/* Desktop left rail */}
@@ -112,6 +116,7 @@ export default function NavRail() {
             })}
           </ul>
         </nav>
+        <ThemeToggle className="mt-auto flex items-center gap-3 text-sm uppercase tracking-label text-ink-soft transition-colors hover:text-ink" />
       </aside>
 
       {/* Mobile bottom bar — opaque for legibility, pinned past the safe area */}

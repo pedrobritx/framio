@@ -23,10 +23,11 @@ export interface Collection {
 export interface StoreState {
   favorites: Artwork[];
   collections: Collection[];
+  uploads: Artwork[];
 }
 
 const KEY = 'framio:v1';
-const EMPTY: StoreState = { favorites: [], collections: [] };
+const EMPTY: StoreState = { favorites: [], collections: [], uploads: [] };
 
 let state: StoreState = EMPTY;
 let hydrated = false;
@@ -41,6 +42,7 @@ function load(): StoreState {
     return {
       favorites: Array.isArray(parsed.favorites) ? parsed.favorites : [],
       collections: Array.isArray(parsed.collections) ? parsed.collections : [],
+      uploads: Array.isArray(parsed.uploads) ? parsed.uploads : [],
     };
   } catch {
     return EMPTY;
@@ -162,6 +164,21 @@ export function removeFromCollection(id: string, artworkId: string) {
         : c,
     ),
   });
+}
+
+/* ------------------------------------------------------------------ uploads */
+
+/** Add a user-uploaded image (stored as a data URL so it persists & re-frames). */
+export function addUpload(art: Artwork) {
+  setState({ ...state, uploads: [art, ...state.uploads] });
+}
+
+export function removeUpload(id: string) {
+  setState({ ...state, uploads: state.uploads.filter((a) => a.id !== id) });
+}
+
+export function getUpload(id: string): Artwork | undefined {
+  return state.uploads.find((a) => a.id === id);
 }
 
 /* -------------------------------------------------------------------- hooks */
