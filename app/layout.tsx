@@ -3,6 +3,7 @@ import { Inter, Cormorant_Garamond } from 'next/font/google';
 import '../styles/tokens.css';
 import './globals.css';
 import NavRail from '@/components/NavRail';
+import { THEME_BOOT_SCRIPT } from '@/components/ThemeToggle';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -45,6 +46,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
       <body className="bg-paper text-ink font-ui antialiased">
         <a href="#main" className="skip-link">
           Skip to content

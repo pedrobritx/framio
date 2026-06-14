@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import ArtworkActions from '@/components/ArtworkActions';
+import Uploader from '@/components/Uploader';
+import { artworkHref } from '@/lib/links';
 import { useStore } from '@/lib/store';
 
 type Tab = 'favorites' | 'uploads' | 'exports';
@@ -15,7 +16,7 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 export default function LibraryPage() {
-  const { favorites } = useStore();
+  const { favorites, uploads } = useStore();
   const [tab, setTab] = useState<Tab>('favorites');
 
   return (
@@ -38,6 +39,7 @@ export default function LibraryPage() {
           >
             {t.label}
             {t.id === 'favorites' && favorites.length > 0 ? ` · ${favorites.length}` : ''}
+            {t.id === 'uploads' && uploads.length > 0 ? ` · ${uploads.length}` : ''}
           </button>
         ))}
       </div>
@@ -56,15 +58,15 @@ export default function LibraryPage() {
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {favorites.map((art) => (
                 <div key={art.id} className="group relative">
-                  <Link href={`/artwork/${art.sourceId}`} className="block">
+                  <Link href={artworkHref(art)} className="block">
                     <div className="relative aspect-[4/5] overflow-hidden border border-stone bg-ivory">
                       {art.thumbUrl && (
-                        <Image
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
                           src={art.thumbUrl}
                           alt={art.title}
-                          fill
-                          sizes="(max-width: 640px) 50vw, 20vw"
-                          className="object-cover transition-transform duration-700 ease-gallery group-hover:scale-[1.04]"
+                          loading="lazy"
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-gallery group-hover:scale-[1.04]"
                         />
                       )}
                     </div>
@@ -75,13 +77,7 @@ export default function LibraryPage() {
             </div>
           ))}
 
-        {tab === 'uploads' && (
-          <p className="max-w-xl text-ink-soft">
-            Bring your own images — drag-and-drop your photos and they flow through Frame Studio
-            exactly like museum works. Upload storage arrives with a connected Supabase project
-            (see docs/ARCHITECTURE.md).
-          </p>
-        )}
+        {tab === 'uploads' && <Uploader />}
 
         {tab === 'exports' && (
           <p className="max-w-xl text-ink-soft">

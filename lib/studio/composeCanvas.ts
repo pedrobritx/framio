@@ -11,15 +11,36 @@ import { TARGET, resolveMatColor, type StudioOptions } from '../frame';
 
 const { width: W, height: H } = TARGET;
 
+/**
+ * Route a cross-origin image through a public CORS proxy so the canvas stays
+ * untainted and exportable. Some museum CDNs (Cleveland, occasionally AIC) don't
+ * send `Access-Control-Allow-Origin`; the Met does, and data URLs never need it.
+ */
+function proxied(src: string): string {
+  const noProto = src.replace(/^https?:\/\//, '');
+  const scheme = src.startsWith('https') ? 'ssl:' : '';
+  return `https://images.weserv.nl/?url=${encodeURIComponent(scheme + noProto)}`;
+}
+
+/** Attempt a cross-origin-readable load; fall back to the proxy on failure. */
 function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    // Met images allow cross-origin reads; required to export a tainted canvas.
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Could not load the source image.'));
-    img.src = src;
-  });
+  const attempt = (url: string) =>
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('load-failed'));
+      img.src = url;
+    });
+
+  // Data URLs (uploads) are same-origin — load directly, never proxy.
+  if (src.startsWith('data:')) return attempt(src);
+
+  return attempt(src).catch(() =>
+    attempt(proxied(src)).catch(() => {
+      throw new Error('Could not load the source image.');
+    }),
+  );
 }
 
 function clamp(n: number, lo: number, hi: number): number {

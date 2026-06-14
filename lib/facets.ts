@@ -1,10 +1,38 @@
 /**
  * Browse facets for Search — the vocabulary people actually look art up by.
  *
- * Movements/topics are best expressed as Met keyword terms (`q`); culture maps to
- * the API's `artistOrCulture`; periods to `dateBegin`/`dateEnd`; departments to
- * `departmentId`. See lib/metClient.ts for how these are applied.
+ * Movements/topics fold into the keyword query (`q`) sent to every museum;
+ * artist/culture maps to `artistOrCulture`; periods to a `dateBegin`/`dateEnd`
+ * range. See lib/sources.ts for how these are applied across collections.
  */
+
+/**
+ * Marquee artists — the names people actually search for. Selecting one runs an
+ * `artistOrCulture` / keyword search across every connected museum, so finding
+ * "Monet" or "Van Gogh" is a single tap instead of a needle in a haystack.
+ */
+export const ARTISTS: string[] = [
+  'Claude Monet',
+  'Vincent van Gogh',
+  'Pierre-Auguste Renoir',
+  'Edgar Degas',
+  'Paul Cézanne',
+  'Paul Gauguin',
+  'Henri de Toulouse-Lautrec',
+  'Gustav Klimt',
+  'Johannes Vermeer',
+  'Rembrandt van Rijn',
+  'Katsushika Hokusai',
+  'Utagawa Hiroshige',
+  'Georgia O’Keeffe',
+  'Mary Cassatt',
+  'J. M. W. Turner',
+  'John Singer Sargent',
+  'Édouard Manet',
+  'Camille Pissarro',
+  'Henri Matisse',
+  'Pablo Picasso',
+];
 
 /** Schools / movements — appended to the keyword query. */
 export const SCHOOLS: string[] = [
