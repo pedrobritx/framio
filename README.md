@@ -21,7 +21,11 @@ curator that lives between the museum and your wall.
 ## What it does (MVP)
 
 - **Browse** The Met's Open Access collection (~406,000 CC0 artworks) — no API key required.
-- **Favorite** works and organize them into **Collections** (your own "exhibitions").
+- **Search** by word, school/movement (Impressionism, Pointillism, Baroque…), artist, culture,
+  period/decade, museum, medium, and topic (nature, portrait, still life…).
+- **Favorite** works and organize them into **Collections** (your own "exhibitions") — the queue
+  you crop in Frame Studio and send to the TV. Selections persist locally on your device.
+- **Mobile-first** layout: a left rail on desktop, a bottom tab bar on phones, proportions intact.
 - **Import** your own images into your Library.
 - **Frame Studio** composes any artwork onto a flawless **3840×2160 (16:9)** canvas — museum mat,
   smart crop, blur-extend, or floating canvas.
@@ -65,6 +69,8 @@ Because GitHub Pages is static (no Node server), the deployed build differs from
 | Feature | Local dev | Static site |
 | --- | --- | --- |
 | Browse / Artwork | Live Met API | Curated set pre-rendered at build time |
+| Search (facets) | Live Met API (in-browser) | Live Met API (in-browser — keyless, CORS) |
+| Favorites / Collections | Browser localStorage | Browser localStorage |
 | Frame Studio export | Sharp on the server (`/api/export`) | Composited in-browser on a `<canvas>` |
 | Deep links | Any Met object id | Only the pre-rendered curated works (others → 404) |
 

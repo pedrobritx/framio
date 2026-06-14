@@ -41,7 +41,7 @@ export default function RootLayout({
         </a>
         <div className="min-h-screen md:flex">
           <NavRail />
-          <main id="main" className="min-w-0 flex-1">
+          <main id="main" className="min-w-0 flex-1 pb-24 md:pb-0">
             {children}
           </main>
         </div>

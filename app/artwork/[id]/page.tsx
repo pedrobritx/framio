@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import ArtworkDetailActions from '@/components/ArtworkDetailActions';
 import { getObject } from '@/lib/met';
 import { getGalleryIds } from '@/lib/gallery';
 
@@ -76,6 +77,8 @@ export default async function ArtworkPage({
               }
             />
           </dl>
+
+          <ArtworkDetailActions art={art} />
 
           <div className="flex flex-wrap gap-3 pt-2">
             {art.isPublicDomain ? (
