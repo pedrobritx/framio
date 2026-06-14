@@ -4,7 +4,7 @@ on:
   push:
     branches: ['**']
   pull_request:
-    branches: [main]
+    branches: [claude/youthful-hopper-afl6vi]
 
 # Cancel superseded runs on the same ref to save minutes.
 concurrency:

@@ -7,7 +7,7 @@ them perfectly formatted for your screen.
 > **Status:** v0.1 — product definition + MVP scaffold. Personal-first, built to grow.
 
 > **Live demo:** [pedrobritx.github.io/framio](https://pedrobritx.github.io/framio/) — a static
-> showcase deployed from `main` via GitHub Actions.
+> showcase deployed from the default branch via GitHub Actions.
 
 ---
 
@@ -54,8 +54,8 @@ you connect a Supabase project (see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.m
 The app ships as a **static export** (`next build` with `output: 'export'`) hosted on GitHub Pages.
 
 - **CI** (`.github/workflows/ci.yml`) typechecks, lints, and builds on every push and PR.
-- **Deploy** (`.github/workflows/deploy.yml`) builds and publishes to Pages on every push to `main`
-  (and daily, so *Artwork of the Day* and the curated set stay fresh).
+- **Deploy** (`.github/workflows/deploy.yml`) builds and publishes to Pages on every push to the
+  default branch (and daily, so *Artwork of the Day* and the curated set stay fresh).
 
 To enable it once: **Settings → Pages → Build and deployment → Source: GitHub Actions.** The base
 path (`/framio`) is injected automatically from the Pages config via `PAGES_BASE_PATH`.
