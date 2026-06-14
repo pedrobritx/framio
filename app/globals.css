@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-paper text-ink font-ui;
+  }
+
+  /* Small-caps metadata labels, per the brand */
+  .eyebrow {
+    @apply font-ui text-xs uppercase tracking-label text-ink-soft;
+  }
+}

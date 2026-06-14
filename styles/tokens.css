@@ -1,0 +1,44 @@
+/*
+ * Framio design tokens — see docs/BRANDING.md
+ * Palette is theme-aware: Light "Gallery Wall" by default, Dark "Exhibition Room"
+ * via system preference or an explicit [data-theme] override.
+ */
+
+:root,
+[data-theme='light'] {
+  --paper: #fbfaf7;
+  --ivory: #f7f4ef;
+  --stone: #e7e2d9;
+  --sand: #d9d0c2;
+  --midnight: #13161d;
+  --ink: #1c1b19;
+  --ink-soft: #6b675f;
+  --brass: #9a7b4f;
+  --brass-soft: #c2a878;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1a1a1c;
+    --ivory: #222024;
+    --stone: #2e2a26;
+    --sand: #241f1b;
+    --midnight: #13161d;
+    --ink: #edeae3;
+    --ink-soft: #a39e95;
+    --brass: #9a7b4f;
+    --brass-soft: #c2a878;
+  }
+}
+
+[data-theme='dark'] {
+  --paper: #1a1a1c;
+  --ivory: #222024;
+  --stone: #2e2a26;
+  --sand: #241f1b;
+  --midnight: #13161d;
+  --ink: #edeae3;
+  --ink-soft: #a39e95;
+  --brass: #9a7b4f;
+  --brass-soft: #c2a878;
+}
