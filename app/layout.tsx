@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Cormorant_Garamond } from 'next/font/google';
 import '../styles/tokens.css';
 import './globals.css';
@@ -28,6 +28,16 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  // Extend under the iOS home indicator so the bottom bar can sit on the
+  // safe-area inset instead of floating as the browser chrome shows/hides.
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#fbfaf7' },
+    { media: '(prefers-color-scheme: dark)', color: '#1a1a1c' },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -41,7 +51,10 @@ export default function RootLayout({
         </a>
         <div className="min-h-screen md:flex">
           <NavRail />
-          <main id="main" className="min-w-0 flex-1 pb-24 md:pb-0">
+          <main
+            id="main"
+            className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0"
+          >
             {children}
           </main>
         </div>

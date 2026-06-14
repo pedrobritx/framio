@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ComponentType } from 'react';
 import {
-  BrowseIcon,
   CollectionsIcon,
   LibraryIcon,
   SearchIcon,
@@ -14,27 +13,56 @@ import {
 
 type IconType = ComponentType<{ className?: string }>;
 
-const ITEMS: {
+type NavItem = {
   href: string;
   label: string;
   Icon: IconType;
   match: (p: string) => boolean;
-}[] = [
-  { href: '/', label: 'Browse', Icon: BrowseIcon, match: (p) => p === '/' || p.startsWith('/artwork') },
-  { href: '/search', label: 'Search', Icon: SearchIcon, match: (p) => p.startsWith('/search') },
-  { href: '/collections', label: 'Collections', Icon: CollectionsIcon, match: (p) => p.startsWith('/collections') },
-  { href: '/studio', label: 'Studio', Icon: StudioIcon, match: (p) => p.startsWith('/studio') },
-  { href: '/library', label: 'Library', Icon: LibraryIcon, match: (p) => p.startsWith('/library') },
-  { href: '/settings', label: 'Settings', Icon: SettingsIcon, match: (p) => p.startsWith('/settings') },
+};
+
+/** Primary destinations — shown in the mobile bottom bar and desktop rail. */
+const PRIMARY: NavItem[] = [
+  {
+    href: '/',
+    label: 'Discover',
+    Icon: SearchIcon,
+    match: (p) => p === '/' || p.startsWith('/search') || p.startsWith('/artwork'),
+  },
+  {
+    href: '/collections',
+    label: 'Collections',
+    Icon: CollectionsIcon,
+    match: (p) => p.startsWith('/collections'),
+  },
+  {
+    href: '/studio',
+    label: 'Studio',
+    Icon: StudioIcon,
+    match: (p) => p.startsWith('/studio'),
+  },
+  {
+    href: '/library',
+    label: 'Library',
+    Icon: LibraryIcon,
+    match: (p) => p.startsWith('/library'),
+  },
 ];
+
+/** Settings — demoted from the crowded bottom bar to the mobile top bar. */
+const SETTINGS: NavItem = {
+  href: '/settings',
+  label: 'Settings',
+  Icon: SettingsIcon,
+  match: (p) => p.startsWith('/settings'),
+};
 
 export default function NavRail() {
   const pathname = usePathname();
 
   return (
     <>
-      {/* Mobile top bar — wordmark + quick search */}
-      <header className="flex items-center justify-between border-b border-stone px-5 py-4 md:hidden">
+      {/* Mobile top bar — wordmark + settings */}
+      <header className="flex items-center justify-between border-b border-stone bg-paper px-5 py-4 md:hidden">
         <Link
           href="/"
           className="font-editorial text-2xl tracking-tight text-ink"
@@ -43,11 +71,14 @@ export default function NavRail() {
           Framio
         </Link>
         <Link
-          href="/search"
-          aria-label="Search"
-          className="flex h-9 w-9 items-center justify-center text-xl text-ink-soft transition-colors hover:text-ink"
+          href={SETTINGS.href}
+          aria-label="Settings"
+          aria-current={SETTINGS.match(pathname) ? 'page' : undefined}
+          className={`flex h-9 w-9 items-center justify-center text-xl transition-colors hover:text-ink ${
+            SETTINGS.match(pathname) ? 'text-brass' : 'text-ink-soft'
+          }`}
         >
-          <SearchIcon />
+          <SettingsIcon />
         </Link>
       </header>
 
@@ -62,7 +93,7 @@ export default function NavRail() {
         </Link>
         <nav aria-label="Primary">
           <ul className="flex flex-col items-start gap-3">
-            {ITEMS.map(({ href, label, Icon, match }) => {
+            {[...PRIMARY, SETTINGS].map(({ href, label, Icon, match }) => {
               const active = match(pathname);
               return (
                 <li key={href}>
@@ -83,23 +114,23 @@ export default function NavRail() {
         </nav>
       </aside>
 
-      {/* Mobile bottom bar */}
+      {/* Mobile bottom bar — opaque for legibility, pinned past the safe area */}
       <nav
         aria-label="Primary"
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-stone bg-paper/95 backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-stone bg-paper pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_8px_rgba(28,27,25,0.06)] md:hidden"
       >
-        {ITEMS.map(({ href, label, Icon, match }) => {
+        {PRIMARY.map(({ href, label, Icon, match }) => {
           const active = match(pathname);
           return (
             <Link
               key={href}
               href={href}
               aria-current={active ? 'page' : undefined}
-              className={`flex flex-col items-center gap-1 py-2.5 text-[0.62rem] uppercase tracking-label transition-colors duration-300 ease-gallery ${
+              className={`flex flex-col items-center gap-1 pb-2.5 pt-3 text-[0.7rem] uppercase tracking-label transition-colors duration-300 ease-gallery ${
                 active ? 'text-brass' : 'text-ink-soft'
               }`}
             >
-              <span className="text-lg">
+              <span className="text-xl">
                 <Icon />
               </span>
               {label}
