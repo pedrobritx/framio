@@ -17,10 +17,14 @@ export default function NavRail() {
   return (
     <aside className="border-b border-stone md:h-screen md:w-56 md:shrink-0 md:border-b-0 md:border-r md:sticky md:top-0">
       <div className="flex items-center justify-between gap-6 px-6 py-5 md:flex-col md:items-start md:gap-10 md:py-8">
-        <Link href="/" className="font-editorial text-2xl tracking-tight text-ink">
+        <Link
+          href="/"
+          className="font-editorial text-2xl tracking-tight text-ink"
+          aria-label="Framio — home"
+        >
           Framio
         </Link>
-        <nav>
+        <nav aria-label="Primary">
           <ul className="flex items-center gap-5 md:flex-col md:items-start md:gap-3">
             {ITEMS.map((it) => {
               const active = it.match(pathname);
@@ -28,6 +32,7 @@ export default function NavRail() {
                 <li key={it.href}>
                   <Link
                     href={it.href}
+                    aria-current={active ? 'page' : undefined}
                     className={`text-sm uppercase tracking-label transition-colors duration-300 ease-gallery ${
                       active ? 'text-brass' : 'text-ink-soft hover:text-ink'
                     }`}

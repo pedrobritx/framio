@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { TARGET, type StudioMode } from '@/lib/frame';
+import { composeCanvas } from '@/lib/studio/composeCanvas';
 
 const MODES: { id: StudioMode; label: string; blurb: string }[] = [
   { id: 'museumMat', label: 'Museum Mat', blurb: 'Centered on an elegant mat.' },
@@ -82,13 +83,7 @@ function StudioInner() {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch('/api/export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ src, mode, matColor: matKey, margin }),
-      });
-      if (!res.ok) throw new Error('Export failed');
-      const blob = await res.blob();
+      const blob = await composeCanvas(src, { mode, matColor: matKey, margin });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -144,7 +139,9 @@ function StudioInner() {
               {MODES.map((m) => (
                 <button
                   key={m.id}
+                  type="button"
                   onClick={() => setMode(m.id)}
+                  aria-pressed={mode === m.id}
                   className={`border p-3 text-left transition-colors duration-300 ease-gallery ${
                     mode === m.id ? 'border-brass' : 'border-stone hover:border-ink-soft'
                   }`}
@@ -164,8 +161,10 @@ function StudioInner() {
                   {MATS.map((m) => (
                     <button
                       key={m.key}
+                      type="button"
                       onClick={() => setMatKey(m.key)}
-                      aria-label={m.key}
+                      aria-label={`${m.key} mat`}
+                      aria-pressed={matKey === m.key}
                       className={`h-9 w-9 rounded-full border border-stone ${
                         matKey === m.key
                           ? 'ring-2 ring-brass ring-offset-2 ring-offset-paper'
@@ -191,6 +190,7 @@ function StudioInner() {
                   step={0.01}
                   value={margin}
                   onChange={(e) => setMargin(Number(e.target.value))}
+                  aria-label="Margin"
                   className="w-full accent-brass"
                 />
               </div>
@@ -199,6 +199,7 @@ function StudioInner() {
 
           <div className="space-y-3 border-t border-stone pt-6">
             <button
+              type="button"
               onClick={exportFrame}
               disabled={busy}
               className="w-full bg-ink px-5 py-3 text-sm text-paper transition-colors duration-300 ease-gallery hover:bg-brass disabled:opacity-50"
@@ -209,7 +210,11 @@ function StudioInner() {
               {TARGET.width}×{TARGET.height} · sRGB JPEG · sized for a 55″ Frame. Load it
               via SmartThings or USB (see docs/FRAME-TV.md).
             </p>
-            {error && <p className="text-xs text-red-700">{error}</p>}
+            {error && (
+              <p role="alert" className="text-xs text-red-700">
+                {error}
+              </p>
+            )}
           </div>
         </aside>
       </div>

@@ -6,6 +6,9 @@ them perfectly formatted for your screen.
 
 > **Status:** v0.1 — product definition + MVP scaffold. Personal-first, built to grow.
 
+> **Live demo:** [pedrobritx.github.io/framio](https://pedrobritx.github.io/framio/) — a static
+> showcase deployed from `main` via GitHub Actions.
+
 ---
 
 ## Why
@@ -46,15 +49,37 @@ npm run dev                     # http://localhost:3000
 Browse works immediately against the live Met API. Collections, Favorites, and Uploads persist once
 you connect a Supabase project (see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
 
+## Deploy (GitHub Pages)
+
+The app ships as a **static export** (`next build` with `output: 'export'`) hosted on GitHub Pages.
+
+- **CI** (`.github/workflows/ci.yml`) typechecks, lints, and builds on every push and PR.
+- **Deploy** (`.github/workflows/deploy.yml`) builds and publishes to Pages on every push to `main`
+  (and daily, so *Artwork of the Day* and the curated set stay fresh).
+
+To enable it once: **Settings → Pages → Build and deployment → Source: GitHub Actions.** The base
+path (`/framio`) is injected automatically from the Pages config via `PAGES_BASE_PATH`.
+
+Because GitHub Pages is static (no Node server), the deployed build differs from `npm run dev`:
+
+| Feature | Local dev | Static site |
+| --- | --- | --- |
+| Browse / Artwork | Live Met API | Curated set pre-rendered at build time |
+| Frame Studio export | Sharp on the server (`/api/export`) | Composited in-browser on a `<canvas>` |
+| Deep links | Any Met object id | Only the pre-rendered curated works (others → 404) |
+
+The full Met catalogue and server-side Sharp pipeline remain the target for the self-hosted /
+Frame Bridge deployment (Phase 2).
+
 ## Project structure
 
 ```
 framio/
 ├─ app/                 # Next.js App Router (Browse, Artwork, Frame Studio, …)
-│  └─ api/              # met (proxy/cache) · export (Sharp → 3840×2160 JPEG)
-├─ lib/                 # met client · supabase · studio (mat/crop/blur compositors)
+├─ lib/                 # met client · gallery (curated set) · studio compositors · supabase
 ├─ styles/tokens.css    # Framio design tokens (palette + type)
 ├─ supabase/migrations/ # database schema
+├─ .github/workflows/   # CI (typecheck/lint/build) · Pages deploy
 ├─ docs/                # product, branding, screens, architecture, frame-tv (+ diagrams)
 └─ design/              # Figma references
 ```

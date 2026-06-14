@@ -1,15 +1,13 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import ArtworkGrid from '@/components/ArtworkGrid';
-import { getArtworkOfDay, getFeatured } from '@/lib/met';
-
-export const revalidate = 86400;
+import { getGallery, getHero } from '@/lib/gallery';
 
 export default async function BrowsePage() {
-  const [hero, featured] = await Promise.all([
-    getArtworkOfDay(),
-    getFeatured('landscape', 15),
-  ]);
+  const [hero, gallery] = await Promise.all([getHero(), getGallery()]);
+  const featured = hero
+    ? gallery.filter((art) => art.sourceId !== hero.sourceId)
+    : gallery;
 
   return (
     <div className="space-y-14 px-6 py-8 md:px-10 md:py-12">
@@ -19,15 +17,18 @@ export default async function BrowsePage() {
       </header>
 
       {hero && (
-        <section>
-          <p className="mb-3 text-xs uppercase tracking-label text-brass">
+        <section aria-labelledby="hero-heading">
+          <p
+            id="hero-heading"
+            className="mb-3 text-xs uppercase tracking-label text-brass"
+          >
             Artwork of the Day
           </p>
           <Link href={`/artwork/${hero.sourceId}`} className="group block">
             <div className="relative aspect-[16/9] overflow-hidden border border-stone bg-ivory">
               <Image
                 src={hero.imageUrl}
-                alt={hero.title}
+                alt={`${hero.title} by ${hero.artist}`}
                 fill
                 priority
                 sizes="100vw"
@@ -45,8 +46,10 @@ export default async function BrowsePage() {
         </section>
       )}
 
-      <section className="space-y-5">
-        <h2 className="font-editorial text-2xl">From the collection</h2>
+      <section className="space-y-5" aria-labelledby="collection-heading">
+        <h2 id="collection-heading" className="font-editorial text-2xl">
+          From the collection
+        </h2>
         <ArtworkGrid artworks={featured} />
       </section>
     </div>
