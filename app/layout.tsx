@@ -18,8 +18,14 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://pedrobritx.github.io/framio/'),
   title: 'Framio — Your personal museum',
   description: 'Curated art for your Samsung Frame TV.',
+  openGraph: {
+    title: 'Framio — Your personal museum',
+    description: 'Curated art for your Samsung Frame TV.',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
@@ -30,9 +36,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${cormorant.variable}`}>
       <body className="bg-paper text-ink font-ui antialiased">
+        <a href="#main" className="skip-link">
+          Skip to content
+        </a>
         <div className="min-h-screen md:flex">
           <NavRail />
-          <main className="min-w-0 flex-1">{children}</main>
+          <main id="main" className="min-w-0 flex-1">
+            {children}
+          </main>
         </div>
       </body>
     </html>

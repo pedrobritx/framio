@@ -16,4 +16,42 @@
   .eyebrow {
     @apply font-ui text-xs uppercase tracking-label text-ink-soft;
   }
+
+  /* Keyboard focus: a clear brass ring on every interactive element. */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 2px;
+    border-radius: 1px;
+  }
+
+  /* Skip link — hidden until focused, then pinned to the top-left. */
+  .skip-link {
+    @apply font-ui text-sm;
+    position: absolute;
+    left: 0.75rem;
+    top: -3rem;
+    z-index: 50;
+    padding: 0.5rem 0.875rem;
+    background: var(--ink);
+    color: var(--paper);
+    transition: top 0.2s ease;
+  }
+
+  .skip-link:focus {
+    top: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

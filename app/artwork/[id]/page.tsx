@@ -2,8 +2,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getObject } from '@/lib/met';
+import { getGalleryIds } from '@/lib/gallery';
 
-export const revalidate = 86400;
+// Static export: pre-render exactly the works reachable from the Browse grid.
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  const ids = await getGalleryIds();
+  return ids.map((id) => ({ id }));
+}
 
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
@@ -35,7 +42,7 @@ export default async function ArtworkPage({
         <div className="relative aspect-[4/3] w-full overflow-hidden border border-stone bg-ivory md:aspect-auto md:min-h-[70vh]">
           <Image
             src={art.imageUrl}
-            alt={art.title}
+            alt={`${art.title} by ${art.artist}`}
             fill
             priority
             sizes="(max-width: 768px) 100vw, 60vw"
