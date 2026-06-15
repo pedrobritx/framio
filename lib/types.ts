@@ -1,4 +1,4 @@
-export type ArtSource = 'met' | 'aic' | 'cma' | 'upload';
+export type ArtSource = 'met' | 'aic' | 'cma' | 'smk' | 'wiki' | 'upload';
 
 /** A dominant colour, in HSL (h 0–360, s/l 0–100), for colour-distance search. */
 export interface ArtColor {
