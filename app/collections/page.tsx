@@ -12,6 +12,8 @@ import {
 } from '@/lib/store';
 import { artworkHref, studioHref } from '@/lib/links';
 import type { Artwork } from '@/lib/types';
+import ArtImage from '@/components/ArtImage';
+import BundleExport from '@/components/BundleExport';
 
 function frameHref(art: Artwork) {
   return art.source === 'upload'
@@ -129,20 +131,19 @@ function CollectionDetail({
           your TV.
         </p>
       ) : (
+        <>
+        <BundleExport items={collection.items} />
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {collection.items.map((art) => (
             <div key={art.id} className="group space-y-2">
               <Link href={artworkHref(art)} className="block">
                 <div className="relative aspect-[4/5] overflow-hidden border border-stone bg-ivory">
-                  {art.thumbUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={art.thumbUrl}
-                      alt={art.title}
-                      loading="lazy"
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
-                  )}
+                  <ArtImage
+                    src={art.thumbUrl}
+                    alt={art.title}
+                    label={art.title}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
                 </div>
               </Link>
               <p className="truncate text-xs text-ink-soft">{art.artist}</p>
@@ -165,6 +166,7 @@ function CollectionDetail({
             </div>
           ))}
         </div>
+        </>
       )}
     </div>
   );
@@ -208,12 +210,11 @@ export default function CollectionsPage() {
                     className="group text-left"
                   >
                     <div className="relative aspect-[4/3] overflow-hidden border border-stone bg-ivory">
-                      {cover?.thumbUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                      {cover ? (
+                        <ArtImage
                           src={cover.thumbUrl}
-                          alt=""
-                          loading="lazy"
+                          alt={c.name}
+                          label={c.name}
                           className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-gallery group-hover:scale-[1.04]"
                         />
                       ) : (

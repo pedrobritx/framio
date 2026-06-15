@@ -19,6 +19,12 @@ export interface StudioOptions {
   matColor?: string; // palette key (e.g. "ivory") or a #RRGGBB hex
   margin?: number; // 0..0.3 fraction of canvas, for mat / floating
   position?: string; // gravity for smartCrop ("attention" | "centre")
+  /** smartCrop fill multiplier over the 16:9 cover (1..4). */
+  zoom?: number;
+  /** smartCrop horizontal pan within the overflow (-1..1). */
+  offsetX?: number;
+  /** smartCrop vertical pan within the overflow (-1..1). */
+  offsetY?: number;
 }
 
 export const STUDIO_DEFAULTS: Record<StudioMode, Partial<StudioOptions>> = {

@@ -94,9 +94,21 @@ export async function composeCanvas(
   ctx.fillRect(0, 0, W, H);
 
   switch (opts.mode) {
-    case 'smartCrop':
-      drawCover(ctx, img, 0, 0, W, H);
+    case 'smartCrop': {
+      // Cover the 16:9 canvas, then apply the editor's zoom and pan. With the
+      // defaults (zoom 1, no offset) this is a plain centered cover crop; the
+      // maths mirrors CropStage so the export matches the preview exactly.
+      const zoom = clamp(opts.zoom ?? 1, 1, 4);
+      const scale = Math.max(W / img.width, H / img.height) * zoom;
+      const dw = img.width * scale;
+      const dh = img.height * scale;
+      const ox = dw - W;
+      const oy = dh - H;
+      const dx = (W - dw) / 2 - clamp(opts.offsetX ?? 0, -1, 1) * (ox / 2);
+      const dy = (H - dh) / 2 - clamp(opts.offsetY ?? 0, -1, 1) * (oy / 2);
+      ctx.drawImage(img, dx, dy, dw, dh);
       break;
+    }
 
     case 'blurExtend': {
       ctx.save();

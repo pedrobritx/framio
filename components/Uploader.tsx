@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { addUpload, removeUpload, useStore } from '@/lib/store';
+import ArtImage from '@/components/ArtImage';
 import { studioHref, artworkHref } from '@/lib/links';
 import { TARGET } from '@/lib/frame';
 import type { Artwork } from '@/lib/types';
@@ -155,10 +156,10 @@ export default function Uploader() {
             <div key={art.id} className="group space-y-2">
               <Link href={artworkHref(art)} className="block">
                 <div className="relative aspect-[4/5] overflow-hidden border border-stone bg-ivory">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <ArtImage
                     src={art.thumbUrl}
                     alt={art.title}
+                    label={art.title}
                     className="absolute inset-0 h-full w-full object-cover"
                   />
                 </div>

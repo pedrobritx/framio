@@ -3,6 +3,7 @@ import { Inter, Cormorant_Garamond } from 'next/font/google';
 import '../styles/tokens.css';
 import './globals.css';
 import NavRail from '@/components/NavRail';
+import ScrollReset from '@/components/ScrollReset';
 import { THEME_BOOT_SCRIPT } from '@/components/ThemeToggle';
 
 const inter = Inter({
@@ -53,11 +54,15 @@ export default function RootLayout({
         <a href="#main" className="skip-link">
           Skip to content
         </a>
-        <div className="min-h-screen md:flex">
+        <ScrollReset />
+        {/* Fixed-height app shell: the content pane scrolls internally so the
+            mobile bottom bar lives in normal flow and never floats over the
+            page as the iOS browser chrome shows and hides. */}
+        <div className="flex h-[100dvh] flex-col md:flex-row">
           <NavRail />
           <main
             id="main"
-            className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0"
+            className="order-2 min-w-0 flex-1 overflow-y-auto md:order-none"
           >
             {children}
           </main>
