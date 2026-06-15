@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import ArtworkCard from '@/components/ArtworkCard';
+import ArtImage from '@/components/ArtImage';
 import { SearchIcon } from '@/components/icons';
 import { artworkHref } from '@/lib/links';
 import {
@@ -623,10 +624,11 @@ export default function Discover({
               </p>
               <Link href={artworkHref(hero)} className="group block">
                 <div className="relative aspect-[16/9] overflow-hidden border border-stone bg-ivory">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <ArtImage
                     src={hero.imageUrl}
                     alt={`${hero.title} by ${hero.artist}`}
+                    label={hero.title}
+                    loading="eager"
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-gallery group-hover:scale-[1.03]"
                   />
                 </div>

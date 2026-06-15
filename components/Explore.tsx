@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import ArtworkCard from '@/components/ArtworkCard';
+import ArtImage from '@/components/ArtImage';
 import { artworkHref } from '@/lib/links';
 import { COLORS, EXHIBITIONS, MOODS } from '@/lib/curation';
 import { ARTISTS } from '@/lib/facets';
@@ -74,10 +75,11 @@ export default function Explore({
           </p>
           <Link href={artworkHref(hero)} className="group block">
             <div className="relative aspect-[16/9] overflow-hidden border border-stone bg-ivory">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <ArtImage
                 src={hero.imageUrl}
                 alt={`${hero.title} by ${hero.artist}`}
+                label={hero.title}
+                loading="eager"
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-gallery group-hover:scale-[1.03]"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-5 md:p-7">

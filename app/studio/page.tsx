@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { TARGET, type StudioMode } from '@/lib/frame';
 import { composeCanvas } from '@/lib/studio/composeCanvas';
+import { triggerDownload } from '@/lib/studio/download';
 import { getArtwork } from '@/lib/sources';
 import { getUpload } from '@/lib/store';
+import CropStage, { DEFAULT_CROP, type Crop } from '@/components/CropStage';
 
 const MODES: { id: StudioMode; label: string; blurb: string }[] = [
   { id: 'museumMat', label: 'Museum Mat', blurb: 'Centered on an elegant mat.' },
@@ -102,26 +104,28 @@ function StudioInner() {
   const [mode, setMode] = useState<StudioMode>('museumMat');
   const [matKey, setMatKey] = useState('ivory');
   const [margin, setMargin] = useState(0.08);
+  const [crop, setCrop] = useState<Crop>(DEFAULT_CROP);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const matHex = MATS.find((m) => m.key === matKey)?.hex ?? '#F7F4EF';
   const showMatControls = mode === 'museumMat' || mode === 'floating';
+  const isCrop = mode === 'smartCrop';
 
   async function exportFrame() {
     if (!src) return;
     setBusy(true);
     setError(null);
     try {
-      const blob = await composeCanvas(src, { mode, matColor: matKey, margin });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'framio-3840x2160.jpg';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      const blob = await composeCanvas(src, {
+        mode,
+        matColor: matKey,
+        margin,
+        zoom: crop.zoom,
+        offsetX: crop.x,
+        offsetY: crop.y,
+      });
+      triggerDownload(blob, 'framio-3840x2160.jpg');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Export failed');
     } finally {
@@ -164,10 +168,16 @@ function StudioInner() {
       <div className="grid gap-8 lg:grid-cols-[1.7fr_1fr] lg:gap-12">
         <div>
           <div className="bg-sand p-4 md:p-8">
-            <Preview src={src} mode={mode} matHex={matHex} margin={margin} />
+            {isCrop ? (
+              <CropStage src={src} crop={crop} onChange={setCrop} />
+            ) : (
+              <Preview src={src} mode={mode} matHex={matHex} margin={margin} />
+            )}
           </div>
           <p className="mt-3 text-xs uppercase tracking-label text-ink-soft">
-            Preview · approximate. Export renders the true {TARGET.width}×{TARGET.height} file.
+            {isCrop
+              ? 'Drag to reposition · zoom to fill. Locked to your Frame’s 16:9.'
+              : `Preview · approximate. Export renders the true ${TARGET.width}×${TARGET.height} file.`}
           </p>
         </div>
 
@@ -234,6 +244,36 @@ function StudioInner() {
                 />
               </div>
             </>
+          )}
+
+          {isCrop && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="eyebrow">Zoom</p>
+                <span className="text-xs text-ink-soft">
+                  {crop.zoom.toFixed(2)}×
+                </span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={3}
+                step={0.01}
+                value={crop.zoom}
+                onChange={(e) =>
+                  setCrop((c) => ({ ...c, zoom: Number(e.target.value) }))
+                }
+                aria-label="Zoom"
+                className="w-full accent-brass"
+              />
+              <button
+                type="button"
+                onClick={() => setCrop(DEFAULT_CROP)}
+                className="text-sm text-ink-soft underline-offset-2 transition-colors hover:text-ink hover:underline"
+              >
+                Reset crop
+              </button>
+            </div>
           )}
 
           <div className="space-y-3 border-t border-stone pt-6">

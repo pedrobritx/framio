@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import ArtworkActions from '@/components/ArtworkActions';
+import ArtImage from '@/components/ArtImage';
 import Uploader from '@/components/Uploader';
 import { artworkHref } from '@/lib/links';
 import { useStore } from '@/lib/store';
@@ -60,15 +61,12 @@ export default function LibraryPage() {
                 <div key={art.id} className="group relative">
                   <Link href={artworkHref(art)} className="block">
                     <div className="relative aspect-[4/5] overflow-hidden border border-stone bg-ivory">
-                      {art.thumbUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={art.thumbUrl}
-                          alt={art.title}
-                          loading="lazy"
-                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-gallery group-hover:scale-[1.04]"
-                        />
-                      )}
+                      <ArtImage
+                        src={art.thumbUrl}
+                        alt={art.title}
+                        label={art.title}
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-gallery group-hover:scale-[1.04]"
+                      />
                     </div>
                   </Link>
                   <ArtworkActions art={art} />

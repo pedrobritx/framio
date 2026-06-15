@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import ArtworkDetailActions from '@/components/ArtworkDetailActions';
+import ArtImage from '@/components/ArtImage';
 import RelatedWorks from '@/components/RelatedWorks';
 import { getArtwork } from '@/lib/sources';
 import { getUpload } from '@/lib/store';
@@ -104,10 +105,11 @@ function ArtworkInner() {
     <div className="px-6 py-8 md:px-10 md:py-12">
       <div className="grid gap-8 md:grid-cols-[1.6fr_1fr] md:gap-12">
         <div className="relative aspect-[4/3] w-full overflow-hidden border border-stone bg-ivory md:aspect-auto md:min-h-[70vh]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <ArtImage
             src={art.imageUrl}
             alt={`${art.title} by ${art.artist}`}
+            label={art.title}
+            loading="eager"
             className="absolute inset-0 h-full w-full object-contain"
           />
         </div>
