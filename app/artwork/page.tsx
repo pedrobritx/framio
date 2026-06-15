@@ -4,9 +4,11 @@ import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import ArtworkDetailActions from '@/components/ArtworkDetailActions';
+import RelatedWorks from '@/components/RelatedWorks';
 import { getArtwork } from '@/lib/sources';
 import { getUpload } from '@/lib/store';
 import { studioHref } from '@/lib/links';
+import { fitsFrame } from '@/lib/curation';
 import type { Artwork } from '@/lib/types';
 
 function MetaRow({ label, value }: { label: string; value: string }) {
@@ -125,6 +127,16 @@ function ArtworkInner() {
             {art.medium && <MetaRow label="Medium" value={art.medium} />}
             <MetaRow label="Museum" value={art.museum} />
             {art.department && <MetaRow label="Department" value={art.department} />}
+            {art.aspect != null && (
+              <MetaRow
+                label="Frame fit"
+                value={
+                  fitsFrame(art.aspect)
+                    ? 'Crops cleanly to 16:9'
+                    : `${art.aspect >= 1 ? 'Wide' : 'Tall'} — needs a mat or crop`
+                }
+              />
+            )}
             <MetaRow
               label="Rights"
               value={
@@ -169,6 +181,8 @@ function ArtworkInner() {
           )}
         </aside>
       </div>
+
+      <RelatedWorks art={art} />
     </div>
   );
 }
