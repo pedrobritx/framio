@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { TARGET } from '@/lib/frame';
 import ThemeSetting from '@/components/ThemeSetting';
 
@@ -49,8 +50,19 @@ export default function SettingsPage() {
 
       <section className="mt-12">
         <h2 className="mb-1 text-xs uppercase tracking-label text-brass">About</h2>
-        <Field label="Sources" value="The Met · Art Institute of Chicago · Cleveland · CC0" />
+        <Field
+          label="Sources"
+          value="Met · Chicago · Cleveland · SMK · Wikimedia"
+          note="Open access · public domain / CC0"
+        />
         <Field label="Version" value="0.1" />
+        <Link
+          href="/about"
+          className="flex items-baseline justify-between gap-6 border-t border-stone py-4 text-sm text-ink transition-colors hover:text-brass"
+        >
+          <span>Manifesto, license &amp; credits</span>
+          <span className="shrink-0 text-ink-soft">→</span>
+        </Link>
       </section>
     </div>
   );

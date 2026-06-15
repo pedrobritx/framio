@@ -22,7 +22,7 @@ import {
   moodBySlug,
 } from '@/lib/curation';
 import {
-  ALL_SOURCES,
+  DEFAULT_SOURCES,
   SOURCES,
   searchArtworks,
   type MuseumSource,
@@ -57,7 +57,7 @@ const INITIAL: State = {
   mood: null,
   color: null,
   aspectFit: false,
-  sources: [...ALL_SOURCES],
+  sources: [...DEFAULT_SOURCES],
   publicDomainOnly: true,
 };
 

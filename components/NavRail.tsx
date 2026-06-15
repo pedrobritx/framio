@@ -4,13 +4,24 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ComponentType } from 'react';
 import {
+  CoffeeIcon,
   CollectionsIcon,
+  GitHubIcon,
+  InfoIcon,
   LibraryIcon,
+  LinkedInIcon,
   SearchIcon,
   SettingsIcon,
   StudioIcon,
 } from './icons';
 import ThemeToggle from './ThemeToggle';
+
+/** Quiet external links shown in the desktop rail footer. */
+const SOCIAL: { href: string; label: string; Icon: IconType }[] = [
+  { href: 'https://github.com/pedrobritx/framio', label: 'Framio on GitHub', Icon: GitHubIcon },
+  { href: 'https://www.linkedin.com/in/pedrobritx/', label: 'LinkedIn', Icon: LinkedInIcon },
+  { href: 'https://buymeacoffee.com/pedrobritx', label: 'Buy me a coffee', Icon: CoffeeIcon },
+];
 
 type IconType = ComponentType<{ className?: string }>;
 
@@ -116,7 +127,35 @@ export default function NavRail() {
             })}
           </ul>
         </nav>
-        <ThemeToggle className="mt-auto flex items-center gap-3 text-sm uppercase tracking-label text-ink-soft transition-colors hover:text-ink" />
+        <div className="mt-auto flex flex-col gap-4">
+          <Link
+            href="/about"
+            aria-current={pathname.startsWith('/about') ? 'page' : undefined}
+            className={`flex items-center gap-3 text-sm uppercase tracking-label transition-colors duration-300 ease-gallery ${
+              pathname.startsWith('/about')
+                ? 'text-brass'
+                : 'text-ink-soft hover:text-ink'
+            }`}
+          >
+            <InfoIcon className="text-base" />
+            About
+          </Link>
+          <ThemeToggle className="flex items-center gap-3 text-sm uppercase tracking-label text-ink-soft transition-colors hover:text-ink" />
+          <div className="flex items-center gap-4 text-lg text-ink-soft">
+            {SOCIAL.map(({ href, label, Icon }) => (
+              <a
+                key={href}
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={label}
+                className="transition-colors hover:text-brass"
+              >
+                <Icon />
+              </a>
+            ))}
+          </div>
+        </div>
       </aside>
 
       {/* Mobile bottom bar — in normal flow at the foot of the shell (never

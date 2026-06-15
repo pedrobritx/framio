@@ -12,20 +12,67 @@ import { colorDistance, fitsFrame } from './curation';
  *   • The Met            — collectionapi.metmuseum.org   (~half a million works)
  *   • Art Institute      — api.artic.edu                 (strong Impressionism)
  *   • Cleveland Museum   — openaccess-api.clevelandart.org
+ *   • SMK (Denmark)      — api.smk.dk                     (Statens Museum for Kunst)
+ *   • Wikimedia Commons  — commons.wikimedia.org          (broad public-domain backstop)
  *
- * More institutions (Getty, NGA, Smithsonian, Wikimedia…) need a server-side
- * proxy and slot in behind the same `SourceAdapter` interface.
+ * Each museum is a small `MuseumAdapter`. Adding one is local: implement the
+ * adapter and register it in `ADAPTERS`. Sources whose image host blocks
+ * hotlinking (see `imagesReliable`) are kept out of the default grid so the
+ * Discover wall never fills with title-only blanks, but stay available as a
+ * filter toggle and for features only they power (e.g. AIC's colour browse).
+ *
+ * Key-gated institutions (Rijksmuseum, Harvard, Smithsonian, Europeana) follow
+ * the same interface and register only when their `NEXT_PUBLIC_*` key is set
+ * (see the conditional spread in `ADAPTERS`). NGA publishes CSV opendata that
+ * needs build-time ingestion — a Phase 2 source, not a live browser adapter.
  */
 
 export type MuseumSource = Exclude<ArtSource, 'upload'>;
 
-export const SOURCES: { id: MuseumSource; label: string; short: string }[] = [
-  { id: 'met', label: 'The Met', short: 'Met' },
-  { id: 'aic', label: 'Art Institute of Chicago', short: 'Chicago' },
-  { id: 'cma', label: 'Cleveland Museum of Art', short: 'Cleveland' },
-];
+/* --------------------------------------------------------------- image proxy */
 
-export const ALL_SOURCES: MuseumSource[] = SOURCES.map((s) => s.id);
+/**
+ * Some museum image hosts (notably the Art Institute of Chicago's IIIF server)
+ * now sit behind Cloudflare bot protection and answer hotlinked `<img>`
+ * requests with a 403 challenge page instead of the picture. Point
+ * `NEXT_PUBLIC_IMAGE_PROXY` at a proxy you control (e.g. a free Cloudflare
+ * Worker) to route those images through it. Use a `{url}` placeholder for the
+ * encoded source, or omit it to have the encoded URL appended.
+ */
+const IMAGE_PROXY = process.env.NEXT_PUBLIC_IMAGE_PROXY?.trim() ?? '';
+export const imageProxyEnabled = IMAGE_PROXY.length > 0;
+
+export function proxyImage(url: string): string {
+  if (!IMAGE_PROXY || !url) return url;
+  return IMAGE_PROXY.includes('{url}')
+    ? IMAGE_PROXY.replace('{url}', encodeURIComponent(url))
+    : IMAGE_PROXY + encodeURIComponent(url);
+}
+
+/* ----------------------------------------------------------- adapter contract */
+
+interface SourcePage {
+  artworks: Artwork[];
+  /** Opaque per-source paging state, handed back on the next call. */
+  next: unknown;
+  hasMore: boolean;
+}
+
+interface MuseumAdapter {
+  id: MuseumSource;
+  label: string;
+  short: string;
+  /**
+   * False when the source's image host blocks hotlinking. Such sources are
+   * dropped from the default grid (but stay toggleable) unless an image proxy
+   * is configured.
+   */
+  imagesReliable: boolean;
+  /** Publishes a dominant colour per work — drives browse-by-colour. */
+  hasColor?: boolean;
+  search(query: SearchQuery, cursor: unknown, signal?: AbortSignal): Promise<SourcePage>;
+  getById(id: string, signal?: AbortSignal): Promise<Artwork | null>;
+}
 
 export interface SearchQuery {
   /** Free-text keyword (title, subject, school/movement all fold into this). */
@@ -43,15 +90,13 @@ export interface SearchQuery {
   aspectFit?: boolean;
   /** Rank results by perceptual distance to this colour (browse-by-colour). */
   color?: ArtColor;
-  /** Which museums to query. Defaults to all. */
+  /** Which museums to query. Defaults to the image-reliable set. */
   sources?: MuseumSource[];
 }
 
 /** Opaque paging state, one entry per source, threaded through "Load more". */
 export interface SearchCursor {
-  met?: { ids: number[]; offset: number };
-  aic?: { page: number; totalPages: number };
-  cma?: { skip: number; total: number };
+  [source: string]: unknown;
   /** Colour browse pools a ranked list once, then pages through it locally. */
   color?: { pool: Artwork[]; offset: number };
 }
@@ -70,6 +115,8 @@ const MET_BASE =
   'https://collectionapi.metmuseum.org/public/collection/v1';
 const AIC_BASE = 'https://api.artic.edu/api/v1/artworks';
 const CMA_BASE = 'https://openaccess-api.clevelandart.org/api/artworks';
+const SMK_BASE = 'https://api.smk.dk/api/v1/art';
+const WIKI_BASE = 'https://commons.wikimedia.org/w/api.php';
 
 /* ----------------------------------------------------------------- helpers */
 
@@ -86,6 +133,10 @@ function firstLine(s?: string): string {
   return (s ?? '').split('\n')[0]?.trim() ?? '';
 }
 
+function stripHtml(s?: string): string {
+  return (s ?? '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+}
+
 async function getJson<T>(url: string, signal?: AbortSignal): Promise<T | null> {
   try {
     const res = await fetch(url, { signal });
@@ -97,6 +148,11 @@ async function getJson<T>(url: string, signal?: AbortSignal): Promise<T | null> 
 }
 
 /* --------------------------------------------------------------------- Met */
+
+interface MetCursor {
+  ids: number[];
+  offset: number;
+}
 
 function metSearchUrl(query: SearchQuery): string {
   const p = new URLSearchParams();
@@ -146,11 +202,12 @@ async function metResolveMany(
 
 async function metPage(
   query: SearchQuery,
-  cursor: SearchCursor['met'],
+  cursor: unknown,
   signal?: AbortSignal,
-): Promise<{ artworks: Artwork[]; next: SearchCursor['met']; hasMore: boolean }> {
-  let ids = cursor?.ids;
-  let offset = cursor?.offset ?? 0;
+): Promise<SourcePage> {
+  const c = cursor as MetCursor | undefined;
+  let ids = c?.ids;
+  let offset = c?.offset ?? 0;
   if (!ids) {
     const data = await getJson<{ objectIDs: number[] | null }>(
       metSearchUrl(query),
@@ -165,7 +222,7 @@ async function metPage(
   const nextOffset = offset + slice.length;
   return {
     artworks,
-    next: { ids, offset: nextOffset },
+    next: { ids, offset: nextOffset } satisfies MetCursor,
     hasMore: nextOffset < ids.length,
   };
 }
@@ -187,12 +244,21 @@ interface AicItem {
   thumbnail?: { width?: number; height?: number } | null;
 }
 
+interface AicCursor {
+  page: number;
+  totalPages: number;
+}
+
 const AIC_FIELDS =
   'id,title,artist_title,artist_display,date_display,medium_display,image_id,is_public_domain,department_title,color,thumbnail';
 
 function aicImage(imageId: string, size: number | 'full'): string {
   const region = size === 'full' ? 'full' : `${size},`;
-  return `https://www.artic.edu/iiif/2/${imageId}/full/${region}/0/default.jpg`;
+  // AIC's IIIF host sits behind Cloudflare bot protection that 403s hotlinks,
+  // so route it through the configured proxy when one is set.
+  return proxyImage(
+    `https://www.artic.edu/iiif/2/${imageId}/full/${region}/0/default.jpg`,
+  );
 }
 
 function mapAic(it: AicItem): Artwork | null {
@@ -228,10 +294,11 @@ function mapAic(it: AicItem): Artwork | null {
 
 async function aicPage(
   query: SearchQuery,
-  cursor: SearchCursor['aic'],
+  cursor: unknown,
   signal?: AbortSignal,
-): Promise<{ artworks: Artwork[]; next: SearchCursor['aic']; hasMore: boolean }> {
-  const page = cursor ? cursor.page + 1 : 1;
+): Promise<SourcePage> {
+  const c = cursor as AicCursor | undefined;
+  const page = c ? c.page + 1 : 1;
   const p = new URLSearchParams();
   const kw = keyword(query);
   if (kw) p.set('q', kw);
@@ -245,10 +312,20 @@ async function aicPage(
   }>(`${AIC_BASE}/search?${p.toString()}`, signal);
   const items = data?.data ?? [];
   const totalPages = data?.pagination?.total_pages ?? page;
-  const artworks = items
-    .map(mapAic)
-    .filter((a): a is Artwork => a !== null);
-  return { artworks, next: { page, totalPages }, hasMore: page < totalPages };
+  const artworks = items.map(mapAic).filter((a): a is Artwork => a !== null);
+  return {
+    artworks,
+    next: { page, totalPages } satisfies AicCursor,
+    hasMore: page < totalPages,
+  };
+}
+
+async function getAic(id: string, signal?: AbortSignal): Promise<Artwork | null> {
+  const data = await getJson<{ data: AicItem }>(
+    `${AIC_BASE}/${id}?fields=${AIC_FIELDS}`,
+    signal,
+  );
+  return data?.data ? mapAic(data.data) : null;
 }
 
 /* ------------------------------------------------------ Cleveland Museum of Art */
@@ -266,6 +343,11 @@ interface CmaItem {
   url?: string;
   share_license_status?: string;
   images?: { web?: CmaImage; print?: CmaImage; full?: CmaImage };
+}
+
+interface CmaCursor {
+  skip: number;
+  total: number;
 }
 
 const CMA_FIELDS =
@@ -297,10 +379,11 @@ function mapCma(it: CmaItem): Artwork | null {
 
 async function cmaPage(
   query: SearchQuery,
-  cursor: SearchCursor['cma'],
+  cursor: unknown,
   signal?: AbortSignal,
-): Promise<{ artworks: Artwork[]; next: SearchCursor['cma']; hasMore: boolean }> {
-  const skip = cursor ? cursor.skip + PER_SOURCE : 0;
+): Promise<SourcePage> {
+  const c = cursor as CmaCursor | undefined;
+  const skip = c ? c.skip + PER_SOURCE : 0;
   const p = new URLSearchParams();
   const kw = keyword(query);
   if (kw) p.set('q', kw);
@@ -318,10 +401,316 @@ async function cmaPage(
   const artworks = items.map(mapCma).filter((a): a is Artwork => a !== null);
   return {
     artworks,
-    next: { skip, total },
+    next: { skip, total } satisfies CmaCursor,
     hasMore: skip + PER_SOURCE < total,
   };
 }
+
+async function getCma(id: string, signal?: AbortSignal): Promise<Artwork | null> {
+  const data = await getJson<{ data: CmaItem }>(
+    `${CMA_BASE}/${id}?fields=${CMA_FIELDS}`,
+    signal,
+  );
+  return data?.data ? mapCma(data.data) : null;
+}
+
+/* -------------------------------------------- SMK — Statens Museum for Kunst */
+
+interface SmkItem {
+  object_number?: string;
+  titles?: { title?: string }[];
+  artist?: string[];
+  production?: { creator?: string }[];
+  production_date?: { period?: string; start?: string }[];
+  techniques?: string[];
+  image_thumbnail?: string;
+  image_width?: number;
+  image_height?: number;
+  frontend_url?: string;
+  public_domain?: boolean;
+}
+
+interface SmkCursor {
+  offset: number;
+  found: number;
+}
+
+const SMK_FIELDS =
+  'object_number,titles,artist,production,production_date,techniques,image_thumbnail,image_width,image_height,frontend_url,public_domain';
+
+/** SMK thumbnails are IIIF (`/full/!1024,/…`); swap the size segment. */
+function smkImage(thumb: string, size: number): string {
+  return thumb.replace(/\/full\/!?\d+,?\//, `/full/!${size},/`);
+}
+
+function mapSmk(it: SmkItem): Artwork | null {
+  const thumb = it.image_thumbnail;
+  if (!thumb || !it.object_number) return null;
+  const w = it.image_width;
+  const h = it.image_height;
+  const aspect = w && h ? w / h : undefined;
+  const date = it.production_date?.[0];
+  return {
+    id: `smk:${it.object_number}`,
+    source: 'smk',
+    sourceId: it.object_number,
+    title: it.titles?.[0]?.title?.trim() || 'Untitled',
+    artist:
+      it.artist?.[0]?.trim() ||
+      it.production?.[0]?.creator?.trim() ||
+      'Unknown artist',
+    year: date?.period?.trim() || date?.start?.slice(0, 4) || '',
+    medium: it.techniques?.[0]?.trim() || '',
+    museum: 'Statens Museum for Kunst',
+    rights: it.public_domain ? 'Public Domain · CC0' : undefined,
+    isPublicDomain: Boolean(it.public_domain),
+    imageUrl: smkImage(thumb, 1686),
+    thumbUrl: smkImage(thumb, 400),
+    objectUrl: it.frontend_url || undefined,
+    width: w,
+    height: h,
+    aspect,
+  };
+}
+
+async function smkPage(
+  query: SearchQuery,
+  cursor: unknown,
+  signal?: AbortSignal,
+): Promise<SourcePage> {
+  const c = cursor as SmkCursor | undefined;
+  const offset = c ? c.offset + PER_SOURCE : 0;
+  const p = new URLSearchParams();
+  p.set('keys', keyword(query) || '*');
+  // SMK carries plenty of non-open works; the Frame use-case only wants CC0/PD.
+  p.set('filters', '[has_image:true],[public_domain:true]');
+  p.set('offset', String(offset));
+  p.set('rows', String(PER_SOURCE));
+  p.set('fields', SMK_FIELDS);
+  p.set('lang', 'en');
+  const data = await getJson<{ found?: number; items?: SmkItem[] }>(
+    `${SMK_BASE}/search/?${p.toString()}`,
+    signal,
+  );
+  const items = data?.items ?? [];
+  const found = data?.found ?? offset + items.length;
+  const artworks = items.map(mapSmk).filter((a): a is Artwork => a !== null);
+  return {
+    artworks,
+    next: { offset, found } satisfies SmkCursor,
+    hasMore: offset + PER_SOURCE < found,
+  };
+}
+
+async function getSmk(id: string, signal?: AbortSignal): Promise<Artwork | null> {
+  const data = await getJson<{ items?: SmkItem[] }>(
+    `${SMK_BASE}/?object_number=${encodeURIComponent(id)}&fields=${SMK_FIELDS}&lang=en`,
+    signal,
+  );
+  const it = data?.items?.[0];
+  return it ? mapSmk(it) : null;
+}
+
+/* ----------------------------------------------------- Wikimedia Commons */
+
+interface WikiPage {
+  title?: string;
+  imageinfo?: {
+    url?: string;
+    thumburl?: string;
+    width?: number;
+    height?: number;
+    descriptionshorturl?: string;
+    extmetadata?: Record<string, { value?: string }>;
+  }[];
+}
+
+interface WikiCursor {
+  offset: number;
+}
+
+/**
+ * A robust large render via Special:FilePath, which clamps `width` to the
+ * original and always resolves to a real image — hand-built thumbnail widths
+ * (e.g. `…/1686px-Name.jpg`) can 400 on Commons. `fileTitle` keeps its
+ * "File:" prefix, stripped here.
+ */
+function wikiFilePath(fileTitle: string, width: number): string {
+  const name = fileTitle.replace(/^File:/, '');
+  return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(
+    name,
+  )}?width=${width}`;
+}
+
+function mapWiki(p: WikiPage): Artwork | null {
+  const ii = p.imageinfo?.[0];
+  if (!ii?.thumburl || !p.title) return null;
+  const em = ii.extmetadata ?? {};
+  const w = ii.width;
+  const h = ii.height;
+  const aspect = w && h ? w / h : undefined;
+  const fileTitle = p.title;
+  const title =
+    stripHtml(em.ObjectName?.value) ||
+    fileTitle.replace(/^File:/, '').replace(/\.[a-z0-9]+$/i, '').trim() ||
+    'Untitled';
+  const license = stripHtml(em.LicenseShortName?.value);
+  return {
+    id: `wiki:${fileTitle}`,
+    source: 'wiki',
+    sourceId: fileTitle,
+    title,
+    artist: stripHtml(em.Artist?.value) || 'Unknown artist',
+    year: stripHtml(em.DateTimeOriginal?.value) || '',
+    medium: stripHtml(em.Medium?.value) || '',
+    museum: stripHtml(em.Attribution?.value) || 'Wikimedia Commons',
+    rights: license || 'Public Domain',
+    // We constrain the search to PD-licensed files (P6216=Q19652).
+    isPublicDomain: true,
+    imageUrl: wikiFilePath(fileTitle, 1600),
+    thumbUrl: ii.thumburl,
+    objectUrl:
+      ii.descriptionshorturl ||
+      `https://commons.wikimedia.org/wiki/${encodeURIComponent(fileTitle)}`,
+    width: w,
+    height: h,
+    aspect,
+  };
+}
+
+function wikiParams(): URLSearchParams {
+  const p = new URLSearchParams();
+  p.set('action', 'query');
+  p.set('format', 'json');
+  // Required for anonymous cross-origin requests to the MediaWiki API.
+  p.set('origin', '*');
+  p.set('prop', 'imageinfo');
+  p.set('iiprop', 'url|size|extmetadata');
+  p.set('iiurlwidth', '400');
+  return p;
+}
+
+async function wikiPage(
+  query: SearchQuery,
+  cursor: unknown,
+  signal?: AbortSignal,
+): Promise<SourcePage> {
+  const c = cursor as WikiCursor | undefined;
+  const offset = c?.offset ?? 0;
+  const kw = keyword(query);
+  // Namespace 6 = File; P6216=Q19652 = copyright status "public domain".
+  const term = `${kw || 'painting'} haswbstatement:P6216=Q19652`;
+  const p = wikiParams();
+  p.set('generator', 'search');
+  p.set('gsrsearch', term);
+  p.set('gsrnamespace', '6');
+  p.set('gsrlimit', String(PER_SOURCE));
+  if (offset) p.set('gsroffset', String(offset));
+  const data = await getJson<{
+    continue?: { gsroffset?: number };
+    query?: { pages?: Record<string, WikiPage> };
+  }>(`${WIKI_BASE}?${p.toString()}`, signal);
+  const pages = data?.query?.pages ? Object.values(data.query.pages) : [];
+  const artworks = pages.map(mapWiki).filter((a): a is Artwork => a !== null);
+  const nextOffset = data?.continue?.gsroffset;
+  return {
+    artworks,
+    next: { offset: nextOffset ?? offset } satisfies WikiCursor,
+    hasMore: typeof nextOffset === 'number',
+  };
+}
+
+async function getWiki(id: string, signal?: AbortSignal): Promise<Artwork | null> {
+  const p = wikiParams();
+  p.set('titles', id);
+  const data = await getJson<{ query?: { pages?: Record<string, WikiPage> } }>(
+    `${WIKI_BASE}?${p.toString()}`,
+    signal,
+  );
+  const page = data?.query?.pages ? Object.values(data.query.pages)[0] : undefined;
+  return page ? mapWiki(page) : null;
+}
+
+/* --------------------------------------------------------- adapter registry */
+
+const met: MuseumAdapter = {
+  id: 'met',
+  label: 'The Met',
+  short: 'Met',
+  imagesReliable: true,
+  search: metPage,
+  getById: (id, signal) => metResolve(id, signal),
+};
+
+const aic: MuseumAdapter = {
+  id: 'aic',
+  label: 'Art Institute of Chicago',
+  short: 'Chicago',
+  // AIC's IIIF host blocks hotlinks behind Cloudflare; only reliable via proxy.
+  imagesReliable: imageProxyEnabled,
+  hasColor: true,
+  search: aicPage,
+  getById: getAic,
+};
+
+const cma: MuseumAdapter = {
+  id: 'cma',
+  label: 'Cleveland Museum of Art',
+  short: 'Cleveland',
+  imagesReliable: true,
+  search: cmaPage,
+  getById: getCma,
+};
+
+const smk: MuseumAdapter = {
+  id: 'smk',
+  label: 'Statens Museum for Kunst',
+  short: 'SMK',
+  imagesReliable: true,
+  search: smkPage,
+  getById: getSmk,
+};
+
+const wiki: MuseumAdapter = {
+  id: 'wiki',
+  label: 'Wikimedia Commons',
+  short: 'Commons',
+  imagesReliable: true,
+  search: wikiPage,
+  getById: getWiki,
+};
+
+/**
+ * Registered adapters. Key-gated institutions slot in here behind their env
+ * keys, e.g.:
+ *
+ *   ...(process.env.NEXT_PUBLIC_RIJKS_KEY ? [rijks] : []),
+ *   ...(process.env.NEXT_PUBLIC_HARVARD_KEY ? [harvard] : []),
+ */
+const ADAPTERS: MuseumAdapter[] = [met, aic, cma, smk, wiki];
+
+const ADAPTER_BY_ID = new Map<MuseumSource, MuseumAdapter>(
+  ADAPTERS.map((a) => [a.id, a]),
+);
+
+/** Source descriptors for the UI (filter chips, card badges). */
+export const SOURCES: { id: MuseumSource; label: string; short: string }[] =
+  ADAPTERS.map(({ id, label, short }) => ({ id, label, short }));
+
+/** Every registered source — used to populate the museum filter. */
+export const ALL_SOURCES: MuseumSource[] = ADAPTERS.map((a) => a.id);
+
+/**
+ * The default selection: sources whose images load reliably, so the resting
+ * grid never fills with title-only blanks. Unreliable ones (AIC without a
+ * proxy) stay available as a toggle and for colour browse.
+ */
+export const DEFAULT_SOURCES: MuseumSource[] = ADAPTERS.filter(
+  (a) => a.imagesReliable,
+).map((a) => a.id);
+
+/** The colour-browse engine (the source that publishes dominant colour). */
+const COLOR_SOURCE = ADAPTERS.find((a) => a.hasColor);
 
 /* --------------------------------------------------------- colour browse */
 
@@ -384,8 +773,8 @@ export async function searchArtworks(
   cursor?: SearchCursor,
   signal?: AbortSignal,
 ): Promise<SearchResult> {
-  // Colour browse is its own path: pool AIC once, then page the ranked list.
-  if (query.color) {
+  // Colour browse is its own path: pool the colour source once, then page it.
+  if (query.color && COLOR_SOURCE) {
     const pool = cursor?.color?.pool ?? (await buildColorPool(query, signal));
     const offset = cursor?.color?.offset ?? 0;
     const slice = pool.slice(offset, offset + PER_SOURCE * 2);
@@ -397,42 +786,21 @@ export async function searchArtworks(
     };
   }
 
-  const sources = query.sources?.length ? query.sources : ALL_SOURCES;
+  const selected = query.sources?.length ? query.sources : DEFAULT_SOURCES;
+  const active = ADAPTERS.filter((a) => selected.includes(a.id));
   const next: SearchCursor = {};
   const lists: Artwork[][] = [];
   let hasMore = false;
 
-  const jobs: Promise<void>[] = [];
+  await Promise.all(
+    active.map(async (adapter) => {
+      const r = await adapter.search(query, cursor?.[adapter.id], signal);
+      lists.push(r.artworks);
+      next[adapter.id] = r.next;
+      hasMore = hasMore || r.hasMore;
+    }),
+  );
 
-  if (sources.includes('met')) {
-    jobs.push(
-      metPage(query, cursor?.met, signal).then((r) => {
-        lists.push(r.artworks);
-        next.met = r.next;
-        hasMore = hasMore || r.hasMore;
-      }),
-    );
-  }
-  if (sources.includes('aic')) {
-    jobs.push(
-      aicPage(query, cursor?.aic, signal).then((r) => {
-        lists.push(r.artworks);
-        next.aic = r.next;
-        hasMore = hasMore || r.hasMore;
-      }),
-    );
-  }
-  if (sources.includes('cma')) {
-    jobs.push(
-      cmaPage(query, cursor?.cma, signal).then((r) => {
-        lists.push(r.artworks);
-        next.cma = r.next;
-        hasMore = hasMore || r.hasMore;
-      }),
-    );
-  }
-
-  await Promise.all(jobs);
   let artworks = interleave(lists);
   // Frame-fit: drop works whose known aspect crops badly to 16:9. Works with no
   // known dimensions (e.g. the Met) are kept — we can't rule them out.
@@ -444,37 +812,16 @@ export async function searchArtworks(
 
 /* --------------------------------------------------- single artwork by id */
 
-async function getAic(id: string, signal?: AbortSignal): Promise<Artwork | null> {
-  const data = await getJson<{ data: AicItem }>(
-    `${AIC_BASE}/${id}?fields=${AIC_FIELDS}`,
-    signal,
-  );
-  return data?.data ? mapAic(data.data) : null;
-}
-
-async function getCma(id: string, signal?: AbortSignal): Promise<Artwork | null> {
-  const data = await getJson<{ data: CmaItem }>(
-    `${CMA_BASE}/${id}?fields=${CMA_FIELDS}`,
-    signal,
-  );
-  return data?.data ? mapCma(data.data) : null;
-}
-
-/** Resolve a composite id (`met:123`, `aic:456`, `cma:789`) to an Artwork. */
+/** Resolve a composite id (`met:123`, `aic:456`, `smk:KMS1`, …) to an Artwork. */
 export async function getArtwork(
   compositeId: string,
   signal?: AbortSignal,
 ): Promise<Artwork | null> {
   const sep = compositeId.indexOf(':');
-  const source = (sep === -1 ? '' : compositeId.slice(0, sep)) as ArtSource;
+  const source = (sep === -1 ? '' : compositeId.slice(0, sep)) as MuseumSource;
   const sourceId = sep === -1 ? compositeId : compositeId.slice(sep + 1);
-  switch (source) {
-    case 'aic':
-      return getAic(sourceId, signal);
-    case 'cma':
-      return getCma(sourceId, signal);
-    case 'met':
-    default:
-      return metResolve(sourceId, signal);
-  }
+  const adapter = ADAPTER_BY_ID.get(source);
+  if (adapter) return adapter.getById(sourceId, signal);
+  // Bare id (no source prefix) → the Met, preserving older deep links.
+  return metResolve(compositeId, signal);
 }

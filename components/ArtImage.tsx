@@ -1,9 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { imageProxyEnabled, proxyImage } from '@/lib/sources';
 
 /** Route a failed CDN image through a CORS-friendly proxy as a second attempt. */
 function proxied(src: string): string {
+  // A configured proxy (NEXT_PUBLIC_IMAGE_PROXY) handles hosts that block
+  // hotlinks (e.g. AIC behind Cloudflare); otherwise retry through a public
+  // image proxy for transient CDN drops.
+  if (imageProxyEnabled) return proxyImage(src);
   const noProto = src.replace(/^https?:\/\//, '');
   const scheme = src.startsWith('https') ? 'ssl:' : '';
   return `https://images.weserv.nl/?url=${encodeURIComponent(scheme + noProto)}`;

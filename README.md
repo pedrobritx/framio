@@ -28,9 +28,10 @@ curator that lives between the museum and your wall.
   on Google's Art Palette.
 - **"Fits your Frame" filter** — every Frame is 16:9, so aspect ratio is a first-class facet:
   keep only works that crop cleanly to the wall, flagged with a `16:9` badge on each card.
-- **Search** open-access collections from **The Met**, the **Art Institute of Chicago**, and the
-  **Cleveland Museum of Art** at once — keyless, CC0, live from the browser — by artist
-  (one-tap Monet, Van Gogh, Vermeer…), movement, culture, period, medium, mood, colour, and topic.
+- **Search** open-access collections from **The Met**, the **Art Institute of Chicago**, the
+  **Cleveland Museum of Art**, **Statens Museum for Kunst (SMK)**, and **Wikimedia Commons** at
+  once — keyless, CC0, live from the browser — by artist (one-tap Monet, Van Gogh, Vermeer…),
+  movement, culture, period, medium, mood, colour, and topic.
 - **Related works** — every artwork page surfaces more by the same hand, for serendipitous
   discovery.
 - **Bring your own image** — drop a photo, it's sized for your Frame and crops in Frame Studio.
@@ -125,9 +126,33 @@ framio/
   Plus more museums (Rijksmuseum, Harvard), **Frame Bridge** auto-push, and Room Preview.
 - **Phase 3:** AI Curator, seasonal/auto collections, native SwiftUI apps, multi-user.
 
+## Why it exists
+
+Framio began with a simple want: beautiful art on my own TV. The Samsung Frame turns a screen into
+a canvas, but filling it meant hunting for high-resolution public-domain images and cropping them by
+hand. So I built the tool I wished existed — and it grew from dressing one screen into a calm,
+gallery-like hub for anyone to wander the world's open collections. Read the full
+[manifesto in the app](https://pedrobritx.github.io/framio/about/).
+
 ## Credits & rights
 
 Artwork and metadata via the open-access programs of **The Met**, the **Art Institute of Chicago**,
-and the **Cleveland Museum of Art** (CC0). Framio displays only works it can
-source under open licenses; in-copyright artists are surfaced for discovery, not download. See
+the **Cleveland Museum of Art**, **Statens Museum for Kunst (SMK)**, and **Wikimedia Commons** —
+public domain / CC0. Framio displays only works it can source under open licenses; in-copyright
+artists are surfaced for discovery, not download. See
 [`docs/FRAME-TV.md`](docs/FRAME-TV.md#rights--licensing).
+
+> **A note on images:** a few museum image hosts (notably the Art Institute of Chicago) now sit
+> behind bot protection that blocks hotlinked images. By default Framio leans on the image-reliable
+> sources so the grid always fills; set `NEXT_PUBLIC_IMAGE_PROXY` to a proxy you control (e.g. a free
+> Cloudflare Worker) to bring those images back everywhere. See [`.env.example`](.env.example).
+
+## License & author
+
+Open source under the [MIT License](LICENSE) — use it, fork it, build on it. The only rule is to keep
+the credit. Built by **Pedro Brito**.
+
+- **Source:** [github.com/pedrobritx/framio](https://github.com/pedrobritx/framio)
+- **LinkedIn:** [in/pedrobritx](https://www.linkedin.com/in/pedrobritx/)
+- **Site:** [pedrobritx.github.io/EwP](https://pedrobritx.github.io/EwP/)
+- **Support:** [buymeacoffee.com/pedrobritx](https://buymeacoffee.com/pedrobritx)
