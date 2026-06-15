@@ -14,6 +14,13 @@ import {
   TOPICS,
 } from '@/lib/facets';
 import {
+  COLORS,
+  MOODS,
+  colorBySlug,
+  exhibitionBySlug,
+  moodBySlug,
+} from '@/lib/curation';
+import {
   ALL_SOURCES,
   SOURCES,
   searchArtworks,
@@ -31,6 +38,9 @@ type State = {
   culture: string | null;
   periodIndex: number | null;
   medium: string | null;
+  mood: string | null; // mood slug
+  color: string | null; // colour slug
+  aspectFit: boolean;
   sources: MuseumSource[];
   publicDomainOnly: boolean;
 };
@@ -43,6 +53,9 @@ const INITIAL: State = {
   culture: null,
   periodIndex: null,
   medium: null,
+  mood: null,
+  color: null,
+  aspectFit: false,
   sources: [...ALL_SOURCES],
   publicDomainOnly: true,
 };
@@ -54,7 +67,8 @@ const QUICK_TOPICS = TOPICS.slice(0, 5);
 
 function toQuery(s: State): SearchQuery {
   const topicQ = s.topic ? TOPICS.find((t) => t.label === s.topic)?.q : undefined;
-  const q = [s.text.trim(), s.school, topicQ].filter(Boolean).join(' ').trim();
+  const moodQ = moodBySlug(s.mood)?.q;
+  const q = [s.text.trim(), s.school, topicQ, moodQ].filter(Boolean).join(' ').trim();
   const period = s.periodIndex != null ? PERIODS[s.periodIndex] : undefined;
   return {
     q,
@@ -62,6 +76,8 @@ function toQuery(s: State): SearchQuery {
     medium: s.medium ?? undefined,
     dateBegin: period?.begin,
     dateEnd: period?.end,
+    aspectFit: s.aspectFit || undefined,
+    color: colorBySlug(s.color)?.hsl,
     publicDomainOnly: s.publicDomainOnly,
     sources: s.sources,
   };
@@ -74,7 +90,10 @@ function countFilters(s: State): number {
     (s.topic ? 1 : 0) +
     (s.culture ? 1 : 0) +
     (s.periodIndex != null ? 1 : 0) +
-    (s.medium ? 1 : 0)
+    (s.medium ? 1 : 0) +
+    (s.mood ? 1 : 0) +
+    (s.color ? 1 : 0) +
+    (s.aspectFit ? 1 : 0)
   );
 }
 
@@ -82,12 +101,15 @@ function countFilters(s: State): number {
 function activeFilters(s: State): { key: keyof State; label: string }[] {
   const out: { key: keyof State; label: string }[] = [];
   if (s.artist) out.push({ key: 'artist', label: s.artist });
+  if (s.mood) out.push({ key: 'mood', label: `Mood: ${moodBySlug(s.mood)?.label ?? s.mood}` });
+  if (s.color) out.push({ key: 'color', label: `Colour: ${colorBySlug(s.color)?.label ?? s.color}` });
   if (s.school) out.push({ key: 'school', label: s.school });
   if (s.topic) out.push({ key: 'topic', label: s.topic });
   if (s.culture) out.push({ key: 'culture', label: s.culture });
   if (s.periodIndex != null)
     out.push({ key: 'periodIndex', label: PERIODS[s.periodIndex].label });
   if (s.medium) out.push({ key: 'medium', label: s.medium });
+  if (s.aspectFit) out.push({ key: 'aspectFit', label: 'Fits your Frame' });
   return out;
 }
 
@@ -147,7 +169,8 @@ export default function Discover({
   const [showFilters, setShowFilters] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Seed from URL (?q, ?artist, ?school, ?topic, ?culture) for deep links.
+  // Seed from URL for deep links / curation tiles:
+  //   ?q ?artist ?school ?topic ?culture ?mood ?color ?theme ?frame
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q') ?? '';
@@ -155,13 +178,27 @@ export default function Discover({
     const school = params.get('school');
     const topic = params.get('topic');
     const culture = params.get('culture');
+    const mood = params.get('mood');
+    const color = params.get('color');
+    const theme = params.get('theme');
+    const frame = params.get('frame');
+    const exhibition = exhibitionBySlug(theme);
     setState((s) => ({
       ...s,
-      text: q,
+      // An exhibition expands into a keyword (+ optional culture) search.
+      text: exhibition ? exhibition.q : q,
       artist: artist && ARTISTS.includes(artist) ? artist : null,
       school: school && SCHOOLS.includes(school) ? school : null,
       topic: topic && TOPICS.some((t) => t.label === topic) ? topic : null,
-      culture: culture && CULTURES.includes(culture) ? culture : null,
+      culture:
+        exhibition?.artistOrCulture && CULTURES.includes(exhibition.artistOrCulture)
+          ? exhibition.artistOrCulture
+          : culture && CULTURES.includes(culture)
+            ? culture
+            : null,
+      mood: moodBySlug(mood) ? mood : null,
+      color: colorBySlug(color) ? color : null,
+      aspectFit: frame === '1' || frame === 'true',
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -240,7 +277,8 @@ export default function Discover({
   }
 
   function removePill(key: keyof State) {
-    update({ [key]: null } as Partial<State>);
+    if (key === 'aspectFit') update({ aspectFit: false });
+    else update({ [key]: null } as Partial<State>);
   }
 
   function toggleSource(id: MuseumSource) {
@@ -258,8 +296,8 @@ export default function Discover({
   return (
     <div className="px-6 py-8 md:px-10 md:py-12">
       <header className="space-y-2">
-        <p className="eyebrow">Browse</p>
-        <h1 className="font-editorial text-4xl md:text-5xl">A living gallery</h1>
+        <p className="eyebrow">Search</p>
+        <h1 className="font-editorial text-4xl md:text-5xl">Find the work</h1>
       </header>
 
       {/* Search bar + filter toggle */}
@@ -359,6 +397,39 @@ export default function Discover({
           className="mt-5 space-y-5 border border-stone bg-ivory/60 p-5"
         >
           <ChipRow
+            label="Mood"
+            options={MOODS.map((m) => ({ key: m.slug, label: m.label }))}
+            value={state.mood}
+            onChange={(v) => update({ mood: v })}
+          />
+
+          {/* Colour — ranks results by AIC dominant-colour distance */}
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-label text-ink-soft">Colour</p>
+            <div className="flex flex-wrap gap-2.5">
+              {COLORS.map((c) => {
+                const active = state.color === c.slug;
+                return (
+                  <button
+                    key={c.slug}
+                    type="button"
+                    aria-pressed={active}
+                    aria-label={c.label}
+                    title={c.label}
+                    onClick={() => update({ color: active ? null : c.slug })}
+                    className={`h-8 w-8 rounded-full border transition-transform duration-300 ease-gallery hover:scale-110 ${
+                      active
+                        ? 'border-brass ring-2 ring-brass ring-offset-2 ring-offset-ivory'
+                        : 'border-stone'
+                    }`}
+                    style={{ background: c.hex }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+
+          <ChipRow
             label="Artist"
             options={ARTISTS.map((a) => ({ key: a, label: a }))}
             value={state.artist}
@@ -420,16 +491,27 @@ export default function Discover({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone pt-4">
-            <label className="flex items-center gap-2 text-sm text-ink">
-              <input
-                type="checkbox"
-                checked={state.publicDomainOnly}
-                onChange={(e) => update({ publicDomainOnly: e.target.checked })}
-                className="accent-brass"
-              />
-              Public domain only (exportable to your Frame)
-            </label>
+          <div className="space-y-3 border-t border-stone pt-4">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+              <label className="flex items-center gap-2 text-sm text-ink">
+                <input
+                  type="checkbox"
+                  checked={state.publicDomainOnly}
+                  onChange={(e) => update({ publicDomainOnly: e.target.checked })}
+                  className="accent-brass"
+                />
+                Public domain only (exportable to your Frame)
+              </label>
+              <label className="flex items-center gap-2 text-sm text-ink">
+                <input
+                  type="checkbox"
+                  checked={state.aspectFit}
+                  onChange={(e) => update({ aspectFit: e.target.checked })}
+                  className="accent-brass"
+                />
+                Fits your Frame — crops cleanly to 16:9
+              </label>
+            </div>
             <button
               type="button"
               onClick={clearAll}
@@ -468,9 +550,22 @@ export default function Discover({
           ) : (
             <>
               <p className="mb-5 text-sm text-ink-soft">
-                Showing {items.length.toLocaleString()} work
-                {items.length === 1 ? '' : 's'}
-                {hasMore ? ' · more available' : ''}
+                {state.color ? (
+                  <>
+                    Ranked by colour ·{' '}
+                    <span className="text-ink">
+                      {colorBySlug(state.color)?.label}
+                    </span>{' '}
+                    · {items.length.toLocaleString()} work
+                    {items.length === 1 ? '' : 's'} from the Art Institute of Chicago
+                  </>
+                ) : (
+                  <>
+                    Showing {items.length.toLocaleString()} work
+                    {items.length === 1 ? '' : 's'}
+                    {hasMore ? ' · more available' : ''}
+                  </>
+                )}
               </p>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {items.map((art) => (

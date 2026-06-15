@@ -18,12 +18,21 @@ screen, and lose quality along the way. Framio replaces that with a calm, galler
 **discovers, curates, and frames** art for you. It is not a wallpaper manager — it is a personal
 curator that lives between the museum and your wall.
 
-## What it does (MVP)
+## What it does
 
-- **Browse** open-access collections from **The Met**, the **Art Institute of Chicago**, and the
-  **Cleveland Museum of Art** at once — keyless, CC0, searched live from the browser.
-- **Search** by artist (one-tap Monet, Van Gogh, Vermeer…), school/movement (Impressionism,
-  Baroque…), culture, period/decade, museum, medium, and topic (nature, portrait, still life…).
+- **Curation-first home** — like Samsung's Art Store, browsing leads: pick a **mood** (calm,
+  dramatic, romantic…), a **colour**, or a curated **exhibition** (Distant Shores, After Dark,
+  Floating World…). Search is one tap away, never the only way in.
+- **Browse by colour** — choose a swatch and works are ranked by perceptual distance to it,
+  powered by the **Art Institute of Chicago**'s published dominant-colour data — a keyless take
+  on Google's Art Palette.
+- **"Fits your Frame" filter** — every Frame is 16:9, so aspect ratio is a first-class facet:
+  keep only works that crop cleanly to the wall, flagged with a `16:9` badge on each card.
+- **Search** open-access collections from **The Met**, the **Art Institute of Chicago**, and the
+  **Cleveland Museum of Art** at once — keyless, CC0, live from the browser — by artist
+  (one-tap Monet, Van Gogh, Vermeer…), movement, culture, period, medium, mood, colour, and topic.
+- **Related works** — every artwork page surfaces more by the same hand, for serendipitous
+  discovery.
 - **Bring your own image** — drop a photo, it's sized for your Frame and crops in Frame Studio.
 - **Light / dark** — a one-tap theme switch (sun/moon) in the top bar, remembered on your device.
 - **Favorite** works and organize them into **Collections** (your own "exhibitions") — the queue
@@ -71,11 +80,13 @@ Because GitHub Pages is static (no Node server), the deployed build differs from
 
 | Feature | Local dev | Static site |
 | --- | --- | --- |
-| Browse / Artwork | Live Met API | Curated set pre-rendered at build time |
-| Search (facets) | Live Met API (in-browser) | Live Met API (in-browser — keyless, CORS) |
+| Home (mood / colour / exhibitions) | Curated vocabulary + live covers | Curated vocabulary, pre-rendered |
+| Search & facets (mood, colour, Frame-fit) | Live museum APIs (in-browser) | Live museum APIs (in-browser — keyless, CORS) |
+| Browse by colour | AIC dominant-colour ranking (in-browser) | AIC dominant-colour ranking (in-browser) |
+| Related works | Live museum APIs (in-browser) | Live museum APIs (in-browser) |
 | Favorites / Collections | Browser localStorage | Browser localStorage |
 | Frame Studio export | Sharp on the server (`/api/export`) | Composited in-browser on a `<canvas>` |
-| Deep links | Any Met object id | Only the pre-rendered curated works (others → 404) |
+| Deep links | Any museum object id | Resolved live client-side from `?id=` |
 
 The full Met catalogue and server-side Sharp pipeline remain the target for the self-hosted /
 Frame Bridge deployment (Phase 2).
@@ -105,9 +116,13 @@ framio/
 
 ## Roadmap (short)
 
-- **Phase 1 — MVP:** Met → curate → Frame Studio → export → onto the TV.
-- **Phase 2:** more museums (Art Institute of Chicago, Cleveland, Rijksmuseum), **Frame Bridge**
-  auto-push, Room Preview, semantic search.
+- **Phase 1 — MVP (done):** keyless multi-museum discovery — curation-first home (mood, colour,
+  exhibitions), faceted search, Frame-fit filtering, related works, Frame Studio export.
+- **Phase 2 — search engine backend:** ingest a normalised, pre-embedded copy of each museum into
+  **Supabase Postgres** (`tsvector` + `pg_trgm` full-text, `pgvector` for OpenAI text + CLIP image
+  embeddings, hybrid Reciprocal Rank Fusion, `cube` colour-distance), so semantic ("calm misty
+  seascape") and visual ("looks like this") search join the colour/mood browsing this build ships.
+  Plus more museums (Rijksmuseum, Harvard), **Frame Bridge** auto-push, and Room Preview.
 - **Phase 3:** AI Curator, seasonal/auto collections, native SwiftUI apps, multi-user.
 
 ## Credits & rights

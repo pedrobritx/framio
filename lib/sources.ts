@@ -1,5 +1,6 @@
-import type { Artwork, ArtSource } from './types';
+import type { Artwork, ArtColor, ArtSource } from './types';
 import { mapMetObject } from './met';
+import { colorDistance, fitsFrame } from './curation';
 
 /**
  * Multi-museum art search — runs entirely in the browser.
@@ -38,6 +39,10 @@ export interface SearchQuery {
   dateEnd?: number;
   /** Limit to CC0 / open-access works (the only ones exportable to a Frame). */
   publicDomainOnly?: boolean;
+  /** Keep only works that crop cleanly onto the Frame's 16:9 (where known). */
+  aspectFit?: boolean;
+  /** Rank results by perceptual distance to this colour (browse-by-colour). */
+  color?: ArtColor;
   /** Which museums to query. Defaults to all. */
   sources?: MuseumSource[];
 }
@@ -47,6 +52,8 @@ export interface SearchCursor {
   met?: { ids: number[]; offset: number };
   aic?: { page: number; totalPages: number };
   cma?: { skip: number; total: number };
+  /** Colour browse pools a ranked list once, then pages through it locally. */
+  color?: { pool: Artwork[]; offset: number };
 }
 
 export interface SearchResult {
@@ -175,10 +182,13 @@ interface AicItem {
   image_id?: string | null;
   is_public_domain?: boolean;
   department_title?: string;
+  /** AIC's published dominant colour. */
+  color?: { h?: number; s?: number; l?: number } | null;
+  thumbnail?: { width?: number; height?: number } | null;
 }
 
 const AIC_FIELDS =
-  'id,title,artist_title,artist_display,date_display,medium_display,image_id,is_public_domain,department_title';
+  'id,title,artist_title,artist_display,date_display,medium_display,image_id,is_public_domain,department_title,color,thumbnail';
 
 function aicImage(imageId: string, size: number | 'full'): string {
   const region = size === 'full' ? 'full' : `${size},`;
@@ -187,6 +197,13 @@ function aicImage(imageId: string, size: number | 'full'): string {
 
 function mapAic(it: AicItem): Artwork | null {
   if (!it.image_id) return null;
+  const w = it.thumbnail?.width;
+  const h = it.thumbnail?.height;
+  const aspect = w && h ? w / h : undefined;
+  const color =
+    it.color && typeof it.color.h === 'number'
+      ? { h: it.color.h, s: it.color.s ?? 0, l: it.color.l ?? 0 }
+      : undefined;
   return {
     id: `aic:${it.id}`,
     source: 'aic',
@@ -202,6 +219,10 @@ function mapAic(it: AicItem): Artwork | null {
     imageUrl: aicImage(it.image_id, 1686),
     thumbUrl: aicImage(it.image_id, 400),
     objectUrl: `https://www.artic.edu/artworks/${it.id}`,
+    width: w,
+    height: h,
+    aspect,
+    color,
   };
 }
 
@@ -302,6 +323,39 @@ async function cmaPage(
   };
 }
 
+/* --------------------------------------------------------- colour browse */
+
+/**
+ * Browse-by-colour. The Art Institute of Chicago is the one keyless source that
+ * publishes a dominant colour per work, so colour ranking pools a wide slice of
+ * its catalogue (optionally narrowed by the active keyword) and sorts by
+ * perceptual distance to the chosen swatch — Framio's keyless Art Palette.
+ */
+async function buildColorPool(
+  query: SearchQuery,
+  signal?: AbortSignal,
+): Promise<Artwork[]> {
+  const target = query.color!;
+  const p = new URLSearchParams();
+  const kw = keyword(query);
+  if (kw) p.set('q', kw);
+  p.set('fields', AIC_FIELDS);
+  p.set('limit', '100');
+  p.set('page', '1');
+  if (query.publicDomainOnly) p.set('query[term][is_public_domain]', 'true');
+  const data = await getJson<{ data: AicItem[] }>(
+    `${AIC_BASE}/search?${p.toString()}`,
+    signal,
+  );
+  const pool = (data?.data ?? [])
+    .map(mapAic)
+    .filter((a): a is Artwork => a !== null && a.color !== undefined);
+  const filtered = query.aspectFit ? pool.filter((a) => fitsFrame(a.aspect)) : pool;
+  return filtered.sort(
+    (a, b) => colorDistance(a.color!, target) - colorDistance(b.color!, target),
+  );
+}
+
 /* ----------------------------------------------------------------- combined */
 
 /** Interleave per-source lists round-robin, de-duplicating by id. */
@@ -330,6 +384,19 @@ export async function searchArtworks(
   cursor?: SearchCursor,
   signal?: AbortSignal,
 ): Promise<SearchResult> {
+  // Colour browse is its own path: pool AIC once, then page the ranked list.
+  if (query.color) {
+    const pool = cursor?.color?.pool ?? (await buildColorPool(query, signal));
+    const offset = cursor?.color?.offset ?? 0;
+    const slice = pool.slice(offset, offset + PER_SOURCE * 2);
+    const nextOffset = offset + slice.length;
+    return {
+      artworks: slice,
+      cursor: { color: { pool, offset: nextOffset } },
+      hasMore: nextOffset < pool.length,
+    };
+  }
+
   const sources = query.sources?.length ? query.sources : ALL_SOURCES;
   const next: SearchCursor = {};
   const lists: Artwork[][] = [];
@@ -366,7 +433,13 @@ export async function searchArtworks(
   }
 
   await Promise.all(jobs);
-  return { artworks: interleave(lists), cursor: next, hasMore };
+  let artworks = interleave(lists);
+  // Frame-fit: drop works whose known aspect crops badly to 16:9. Works with no
+  // known dimensions (e.g. the Met) are kept — we can't rule them out.
+  if (query.aspectFit) {
+    artworks = artworks.filter((a) => a.aspect == null || fitsFrame(a.aspect));
+  }
+  return { artworks, cursor: next, hasMore };
 }
 
 /* --------------------------------------------------- single artwork by id */

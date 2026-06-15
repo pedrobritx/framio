@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Artwork } from '@/lib/types';
 import { artworkHref } from '@/lib/links';
+import { fitsFrame } from '@/lib/curation';
 import ArtworkActions from './ArtworkActions';
 import { SOURCES } from '@/lib/sources';
 
@@ -30,6 +31,14 @@ export default function ArtworkCard({ art }: { art: Artwork }) {
           {SOURCE_LABEL[art.source] && (
             <span className="absolute left-2 top-2 rounded-full bg-paper/85 px-2 py-0.5 text-[0.6rem] uppercase tracking-label text-ink-soft backdrop-blur">
               {SOURCE_LABEL[art.source]}
+            </span>
+          )}
+          {fitsFrame(art.aspect) && (
+            <span
+              className="absolute right-2 top-2 rounded-full bg-brass/90 px-2 py-0.5 text-[0.6rem] uppercase tracking-label text-paper backdrop-blur"
+              title="Crops cleanly to your Frame's 16:9"
+            >
+              16:9
             </span>
           )}
         </div>

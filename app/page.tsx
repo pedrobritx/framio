@@ -1,11 +1,11 @@
-import Discover from '@/components/Discover';
+import Explore from '@/components/Explore';
 import { getGallery, getHero } from '@/lib/gallery';
 
-export default async function BrowsePage() {
+export default async function HomePage() {
   const [hero, gallery] = await Promise.all([getHero(), getGallery()]);
   const featured = hero
     ? gallery.filter((art) => art.sourceId !== hero.sourceId)
     : gallery;
 
-  return <Discover hero={hero} featured={featured} />;
+  return <Explore hero={hero} featured={featured} />;
 }
