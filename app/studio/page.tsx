@@ -1,11 +1,18 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { TARGET, type StudioMode } from '@/lib/frame';
+import {
+  DEFAULT_FRAME_ID,
+  frameById,
+  getFrameSize,
+  type FrameSize,
+  type StudioMode,
+} from '@/lib/frame';
 import { composeCanvas } from '@/lib/studio/composeCanvas';
 import { triggerDownload } from '@/lib/studio/download';
+import { baseName, fileToDataUrl, UPLOAD_ACCEPT } from '@/lib/studio/upload';
 import { getArtwork } from '@/lib/sources';
 import { getUpload } from '@/lib/store';
 import CropStage, { DEFAULT_CROP, type Crop } from '@/components/CropStage';
@@ -74,6 +81,16 @@ function StudioInner() {
   const id = sp.get('id') ?? '';
   const [resolvedSrc, setResolvedSrc] = useState('');
   const [resolvedTitle, setResolvedTitle] = useState('');
+  // An image dropped straight into the studio (no Browse / Library detour).
+  const [localSrc, setLocalSrc] = useState('');
+  const [localTitle, setLocalTitle] = useState('');
+  // The reader's saved Frame size drives the export resolution. Start from the
+  // default (matches the prerendered HTML), then read the saved choice on mount.
+  const [frame, setFrame] = useState<FrameSize>(frameById(DEFAULT_FRAME_ID));
+
+  useEffect(() => {
+    setFrame(getFrameSize());
+  }, []);
 
   // A work can arrive by direct image URL (?src=…, museum works) or by id
   // (?id=upload:… / met:… ), resolved here client-side.
@@ -98,8 +115,9 @@ function StudioInner() {
     };
   }, [directSrc, id]);
 
-  const src = directSrc || resolvedSrc;
-  const title = sp.get('title') ?? resolvedTitle ?? 'Untitled';
+  const src = directSrc || resolvedSrc || localSrc;
+  const title =
+    sp.get('title') || resolvedTitle || localTitle || 'Untitled';
 
   const [mode, setMode] = useState<StudioMode>('museumMat');
   const [matKey, setMatKey] = useState('ivory');
@@ -111,6 +129,29 @@ function StudioInner() {
   const matHex = MATS.find((m) => m.key === matKey)?.hex ?? '#F7F4EF';
   const showMatControls = mode === 'museumMat' || mode === 'floating';
   const isCrop = mode === 'smartCrop';
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
+  const [reading, setReading] = useState(false);
+
+  async function ingest(files: FileList | File[]) {
+    const file = Array.from(files).find((f) => f.type.startsWith('image/'));
+    if (!file) {
+      setError('Please choose an image file (JPEG, PNG, WebP, or GIF).');
+      return;
+    }
+    setReading(true);
+    setError(null);
+    try {
+      const { url } = await fileToDataUrl(file);
+      setLocalSrc(url);
+      setLocalTitle(baseName(file.name));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not read that image.');
+    } finally {
+      setReading(false);
+    }
+  }
 
   async function exportFrame() {
     if (!src) return;
@@ -124,8 +165,10 @@ function StudioInner() {
         zoom: crop.zoom,
         offsetX: crop.x,
         offsetY: crop.y,
+        width: frame.width,
+        height: frame.height,
       });
-      triggerDownload(blob, 'framio-3840x2160.jpg');
+      triggerDownload(blob, `framio-${frame.width}x${frame.height}.jpg`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Export failed');
     } finally {
@@ -148,12 +191,57 @@ function StudioInner() {
         <p className="eyebrow">Frame Studio</p>
         <h1 className="mt-2 font-editorial text-4xl md:text-5xl">Frame any work</h1>
         <p className="mt-5 leading-relaxed text-ink-soft">
-          Open an artwork from{' '}
+          Drop an image to crop it for your Frame — or open an artwork from{' '}
           <Link href="/" className="text-brass">
             Browse
           </Link>{' '}
-          and choose “Open in Frame Studio” to compose it for your Frame.
+          and choose “Open in Frame Studio”.
         </p>
+
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragging(false);
+            if (e.dataTransfer.files?.length) ingest(e.dataTransfer.files);
+          }}
+          className={`mt-8 flex flex-col items-center justify-center gap-3 border-2 border-dashed px-6 py-14 text-center transition-colors ${
+            dragging ? 'border-brass bg-brass/5' : 'border-stone bg-ivory/40'
+          }`}
+        >
+          <p className="font-editorial text-2xl">Drop an image to frame it</p>
+          <p className="max-w-md text-sm text-ink-soft">
+            Drag a photo or artwork here — or choose a file. Crop it for your
+            Frame right away.
+          </p>
+          <input
+            ref={inputRef}
+            type="file"
+            accept={UPLOAD_ACCEPT}
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.length) ingest(e.target.files);
+              e.target.value = '';
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={reading}
+            className="mt-1 bg-ink px-5 py-2.5 text-sm text-paper transition-colors duration-300 ease-gallery hover:bg-brass disabled:opacity-50"
+          >
+            {reading ? 'Reading…' : 'Choose a file'}
+          </button>
+          {error && (
+            <p role="alert" className="text-xs text-red-700">
+              {error}
+            </p>
+          )}
+        </div>
       </div>
     );
   }
@@ -177,7 +265,7 @@ function StudioInner() {
           <p className="mt-3 text-xs uppercase tracking-label text-ink-soft">
             {isCrop
               ? 'Drag to reposition · zoom to fill. Locked to your Frame’s 16:9.'
-              : `Preview · approximate. Export renders the true ${TARGET.width}×${TARGET.height} file.`}
+              : `Preview · approximate. Export renders the true ${frame.width}×${frame.height} file.`}
           </p>
         </div>
 
@@ -286,8 +374,8 @@ function StudioInner() {
               {busy ? 'Composing…' : 'Export for Frame'}
             </button>
             <p className="text-xs text-ink-soft">
-              {TARGET.width}×{TARGET.height} · sRGB JPEG · sized for a 55″ Frame. Load it
-              via SmartThings or USB (see docs/FRAME-TV.md).
+              {frame.width}×{frame.height} · sRGB JPEG · sized for your {frame.label}{' '}
+              Frame. Load it via SmartThings or USB (see docs/FRAME-TV.md).
             </p>
             {error && (
               <p role="alert" className="text-xs text-red-700">

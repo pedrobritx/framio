@@ -200,6 +200,47 @@ export default function Explore({
           </p>
         )}
       </section>
+
+      {/* Footer — surface the manifesto and the open-source story up front */}
+      <footer className="mt-20 border-t border-stone pt-8">
+        <Link
+          href="/about/"
+          className="group inline-flex items-baseline gap-2 font-editorial text-2xl text-ink transition-colors hover:text-brass md:text-3xl"
+        >
+          Read the manifesto
+          <span className="text-brass transition-transform duration-300 ease-gallery group-hover:translate-x-1">
+            →
+          </span>
+        </Link>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-soft">
+          Why Framio exists, the open collections behind it, and the license
+          that keeps it free.
+        </p>
+        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs uppercase tracking-label text-ink-soft">
+          <Link href="/about/" className="transition-colors hover:text-brass">
+            About
+          </Link>
+          <a
+            href="https://github.com/pedrobritx/framio"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-colors hover:text-brass"
+          >
+            Source on GitHub
+          </a>
+          <a
+            href="https://github.com/pedrobritx/framio/blob/main/LICENSE"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-colors hover:text-brass"
+          >
+            MIT License
+          </a>
+        </div>
+        <p className="mt-6 text-xs text-ink-soft">
+          Built by Pedro Brito · Open source (MIT) · {new Date().getFullYear()}
+        </p>
+      </footer>
     </div>
   );
 }

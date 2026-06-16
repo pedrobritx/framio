@@ -128,6 +128,19 @@ export function createCollection(name: string): string {
   return id;
 }
 
+/** Create a collection pre-filled with items, in a single write (batch uploads). */
+export function createCollectionWithItems(name: string, items: Artwork[]): string {
+  const id = newId();
+  const collection: Collection = {
+    id,
+    name: name.trim() || 'Untitled collection',
+    createdAt: Date.now(),
+    items: [...items],
+  };
+  setState({ ...state, collections: [...state.collections, collection] });
+  return id;
+}
+
 export function renameCollection(id: string, name: string) {
   setState({
     ...state,

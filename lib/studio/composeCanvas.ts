@@ -9,8 +9,6 @@ import { TARGET, resolveMatColor, type StudioOptions } from '../frame';
  * 3840×2160 canvas and resolves to a JPEG Blob, ready to download.
  */
 
-const { width: W, height: H } = TARGET;
-
 /**
  * Route a cross-origin image through a public CORS proxy so the canvas stays
  * untainted and exportable. Some museum CDNs (Cleveland, occasionally AIC) don't
@@ -82,6 +80,9 @@ export async function composeCanvas(
   opts: StudioOptions,
 ): Promise<Blob> {
   const img = await loadImage(src);
+
+  const W = opts.width ?? TARGET.width;
+  const H = opts.height ?? TARGET.height;
 
   const canvas = document.createElement('canvas');
   canvas.width = W;

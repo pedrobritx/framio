@@ -2,20 +2,26 @@
 
 import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { addUpload, removeUpload, useStore } from '@/lib/store';
+import {
+  addUpload,
+  createCollectionWithItems,
+  removeUpload,
+  useStore,
+} from '@/lib/store';
 import ArtImage from '@/components/ArtImage';
 import { studioHref, artworkHref } from '@/lib/links';
 import { TARGET } from '@/lib/frame';
+import { baseName, fileToDataUrl, UPLOAD_ACCEPT } from '@/lib/studio/upload';
 import type { Artwork } from '@/lib/types';
 
 /**
  * Bring-your-own image. Files are read in the browser, downscaled to the Frame's
  * longest edge (so localStorage stays light and exports stay crisp), and kept as
  * data URLs in the local store — ready to crop in Frame Studio like any museum work.
+ * Each upload batch is also gathered into a collection named after the moment.
  */
 
-const MAX_EDGE = TARGET.width; // 3840 — no need to keep more than the Frame can show
-const ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';
+const ACCEPT = UPLOAD_ACCEPT;
 
 function uid(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -24,37 +30,15 @@ function uid(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function baseName(name: string): string {
-  return name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim() || 'Untitled';
-}
-
-/** Read a file, downscaling oversized images, into a JPEG data URL. */
-function fileToDataUrl(file: File): Promise<{ url: string; w: number; h: number }> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Could not read the file.'));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error('That file is not a readable image.'));
-      img.onload = () => {
-        const scale = Math.min(1, MAX_EDGE / Math.max(img.width, img.height));
-        const w = Math.max(1, Math.round(img.width * scale));
-        const h = Math.max(1, Math.round(img.height * scale));
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Canvas is not supported in this browser.'));
-          return;
-        }
-        ctx.drawImage(img, 0, 0, w, h);
-        resolve({ url: canvas.toDataURL('image/jpeg', 0.92), w, h });
-      };
-      img.src = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
+/** A readable name for a batch's collection, e.g. "Upload · 15 Jun 2026, 23:46". */
+function batchName(date = new Date()): string {
+  return `Upload · ${date.toLocaleString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })}`;
 }
 
 export default function Uploader() {
@@ -73,6 +57,7 @@ export default function Uploader() {
     setBusy(true);
     setError(null);
     try {
+      const batch: Artwork[] = [];
       for (const file of images) {
         const { url, w, h } = await fileToDataUrl(file);
         const id = uid();
@@ -92,7 +77,10 @@ export default function Uploader() {
           height: h,
         };
         addUpload(art);
+        batch.push(art);
       }
+      // Gather the batch into a collection named after the upload moment.
+      if (batch.length) createCollectionWithItems(batchName(), batch);
     } catch (e) {
       setError(
         e instanceof Error ? e.message : 'Something went wrong reading that image.',
