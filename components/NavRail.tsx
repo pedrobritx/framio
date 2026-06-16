@@ -82,8 +82,9 @@ export default function NavRail() {
         >
           Framio
         </Link>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <ThemeToggle className="flex h-9 w-9 items-center justify-center text-xl text-ink-soft transition-colors hover:text-ink" />
+          <span className="h-5 w-px bg-stone" aria-hidden />
           <Link
             href={SETTINGS.href}
             aria-label="Settings"

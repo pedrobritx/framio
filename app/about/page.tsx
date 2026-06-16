@@ -5,20 +5,13 @@ import {
   GitHubIcon,
   LinkedInIcon,
 } from '@/components/icons';
+import { MUSEUMS } from '@/lib/museums';
 
 export const metadata: Metadata = {
   title: 'About · Framio',
   description:
     'Why Framio exists, who made it, and the open collections and license behind it.',
 };
-
-const SOURCES = [
-  'The Metropolitan Museum of Art',
-  'Art Institute of Chicago',
-  'Cleveland Museum of Art',
-  'Statens Museum for Kunst (SMK)',
-  'Wikimedia Commons',
-];
 
 const LINKS: {
   href: string;
@@ -116,13 +109,18 @@ export default function AboutPage() {
         <h2 className="mb-3 text-xs uppercase tracking-label text-brass">
           Collections
         </h2>
-        <ul className="space-y-2.5">
-          {SOURCES.map((s) => (
-            <li
-              key={s}
-              className="border-t border-stone pt-2.5 text-sm text-ink"
-            >
-              {s}
+        <ul className="space-y-1">
+          {MUSEUMS.map((m) => (
+            <li key={m.url}>
+              <a
+                href={m.url}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex items-center justify-between gap-4 border-t border-stone py-3 text-sm text-ink transition-colors hover:text-brass"
+              >
+                <span>{m.full}</span>
+                <ExternalLinkIcon className="shrink-0 text-sm text-ink-soft opacity-0 transition-opacity group-hover:opacity-100" />
+              </a>
             </li>
           ))}
         </ul>
