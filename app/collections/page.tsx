@@ -109,7 +109,7 @@ function CollectionDetail({
               href={watchHref({ collection: collection.id })}
               className="inline-flex items-center gap-2 border border-stone px-3 py-1.5 transition-colors hover:border-brass"
             >
-              <PlayIcon className="text-brass" />
+              <PlayIcon className="text-brass-text" />
               Watch
             </Link>
           )}
@@ -162,7 +162,7 @@ function CollectionDetail({
               <p className="truncate text-xs text-ink-soft">{art.artist}</p>
               <div className="flex items-center gap-3 text-xs">
                 {art.isPublicDomain ? (
-                  <Link href={frameHref(art)} className="text-brass hover:underline">
+                  <Link href={frameHref(art)} className="text-brass-text hover:underline">
                     Frame for TV
                   </Link>
                 ) : (

@@ -15,6 +15,10 @@
   --ink-soft: #6b675f;
   --brass: #9a7b4f;
   --brass-soft: #c2a878;
+  /* Brass, darkened for text on paper: --brass (#9a7b4f) is only 3.8:1 and
+     fails WCAG AA on small copy, so links/eyebrows use this (~5.4:1). Keep
+     --brass itself for decorative fills, rings, and large marks. */
+  --brass-text: #7d6440;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -28,6 +32,8 @@
     --ink-soft: #a39e95;
     --brass: #9a7b4f;
     --brass-soft: #c2a878;
+    /* On the dark paper the lighter brass reads clearly (~7:1). */
+    --brass-text: #c2a878;
   }
 }
 
@@ -41,4 +47,5 @@
   --ink-soft: #a39e95;
   --brass: #9a7b4f;
   --brass-soft: #c2a878;
+  --brass-text: #c2a878;
 }

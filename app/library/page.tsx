@@ -35,7 +35,7 @@ export default function LibraryPage() {
             onClick={() => setTab(t.id)}
             aria-current={tab === t.id ? 'true' : undefined}
             className={`-mb-px border-b-2 pb-2 text-sm uppercase tracking-label transition-colors duration-300 ease-gallery ${
-              tab === t.id ? 'border-brass text-brass' : 'border-transparent text-ink-soft hover:text-ink'
+              tab === t.id ? 'border-brass text-brass-text' : 'border-transparent text-ink-soft hover:text-ink'
             }`}
           >
             {t.label}
@@ -50,7 +50,7 @@ export default function LibraryPage() {
           (favorites.length === 0 ? (
             <p className="text-ink-soft">
               No favorites yet. Tap the heart on any work while{' '}
-              <Link href="/search" className="text-brass">
+              <Link href="/search" className="text-brass-text">
                 browsing
               </Link>{' '}
               to keep it here.

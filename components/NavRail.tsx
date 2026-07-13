@@ -97,7 +97,7 @@ export default function NavRail() {
             aria-label="Settings"
             aria-current={SETTINGS.match(pathname) ? 'page' : undefined}
             className={`flex h-9 w-9 items-center justify-center text-xl transition-colors hover:text-ink ${
-              SETTINGS.match(pathname) ? 'text-brass' : 'text-ink-soft'
+              SETTINGS.match(pathname) ? 'text-brass-text' : 'text-ink-soft'
             }`}
           >
             <SettingsIcon />
@@ -124,7 +124,7 @@ export default function NavRail() {
                     href={href}
                     aria-current={active ? 'page' : undefined}
                     className={`flex items-center gap-3 text-sm uppercase tracking-label transition-colors duration-300 ease-gallery ${
-                      active ? 'text-brass' : 'text-ink-soft hover:text-ink'
+                      active ? 'text-brass-text' : 'text-ink-soft hover:text-ink'
                     }`}
                   >
                     <Icon className="text-base" />
@@ -141,7 +141,7 @@ export default function NavRail() {
             aria-current={pathname.startsWith('/about') ? 'page' : undefined}
             className={`flex items-center gap-3 text-sm uppercase tracking-label transition-colors duration-300 ease-gallery ${
               pathname.startsWith('/about')
-                ? 'text-brass'
+                ? 'text-brass-text'
                 : 'text-ink-soft hover:text-ink'
             }`}
           >
@@ -157,7 +157,7 @@ export default function NavRail() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label={label}
-                className="transition-colors hover:text-brass"
+                className="transition-colors hover:text-brass-text"
               >
                 <Icon />
               </a>
@@ -180,7 +180,7 @@ export default function NavRail() {
               href={href}
               aria-current={active ? 'page' : undefined}
               className={`flex flex-col items-center gap-1 pb-2.5 pt-3 text-[0.65rem] uppercase tracking-label transition-colors duration-300 ease-gallery ${
-                active ? 'text-brass' : 'text-ink-soft'
+                active ? 'text-brass-text' : 'text-ink-soft'
               }`}
             >
               <span className="text-xl">

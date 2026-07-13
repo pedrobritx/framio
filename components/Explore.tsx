@@ -63,7 +63,7 @@ export default function Explore({
         </p>
         <Link
           href="/search/"
-          className="mt-6 inline-flex items-center gap-2 border border-stone px-4 py-3 text-sm text-ink transition-colors duration-300 ease-gallery hover:border-brass hover:text-brass"
+          className="mt-6 inline-flex items-center gap-2 border border-stone px-4 py-3 text-sm text-ink transition-colors duration-300 ease-gallery hover:border-brass hover:text-brass-text"
         >
           <SearchIcon className="text-base text-ink-soft" />
           Search artists, movements, subjects…
@@ -73,7 +73,7 @@ export default function Explore({
       {/* Hero — Artwork of the Day */}
       {hero && (
         <section className="mt-12" aria-labelledby="hero-heading">
-          <p id="hero-heading" className="mb-3 eyebrow text-brass">
+          <p id="hero-heading" className="mb-3 eyebrow text-brass-text">
             Artwork of the Day
           </p>
           <Link href={artworkHref(hero)} className="group block">
@@ -101,7 +101,7 @@ export default function Explore({
               href={watchHref()}
               className="inline-flex items-center gap-2 border border-stone px-4 py-2 text-sm transition-colors duration-300 ease-gallery hover:border-brass"
             >
-              <PlayIcon className="text-brass" />
+              <PlayIcon className="text-brass-text" />
               Watch today’s gallery
             </Link>
           </div>
@@ -189,7 +189,7 @@ export default function Explore({
             <Link
               key={a}
               href={`/search/?artist=${encodeURIComponent(a)}`}
-              className="rounded-full border border-stone px-3 py-1.5 text-sm text-ink transition-colors duration-300 ease-gallery hover:border-brass hover:text-brass"
+              className="rounded-full border border-stone px-3 py-1.5 text-sm text-ink transition-colors duration-300 ease-gallery hover:border-brass hover:text-brass-text"
             >
               {a}
             </Link>
@@ -217,10 +217,10 @@ export default function Explore({
       <footer className="mt-20 border-t border-stone pt-8">
         <Link
           href="/about/"
-          className="group inline-flex items-baseline gap-2 font-editorial text-2xl text-ink transition-colors hover:text-brass md:text-3xl"
+          className="group inline-flex items-baseline gap-2 font-editorial text-2xl text-ink transition-colors hover:text-brass-text md:text-3xl"
         >
           Read the manifesto
-          <span className="text-brass transition-transform duration-300 ease-gallery group-hover:translate-x-1">
+          <span className="text-brass-text transition-transform duration-300 ease-gallery group-hover:translate-x-1">
             →
           </span>
         </Link>
@@ -229,14 +229,14 @@ export default function Explore({
           that keeps it free.
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs uppercase tracking-label text-ink-soft">
-          <Link href="/about/" className="transition-colors hover:text-brass">
+          <Link href="/about/" className="transition-colors hover:text-brass-text">
             About
           </Link>
           <a
             href="https://github.com/pedrobritx/framio"
             target="_blank"
             rel="noreferrer"
-            className="transition-colors hover:text-brass"
+            className="transition-colors hover:text-brass-text"
           >
             Source on GitHub
           </a>
@@ -244,7 +244,7 @@ export default function Explore({
             href="https://github.com/pedrobritx/framio/blob/main/LICENSE"
             target="_blank"
             rel="noreferrer"
-            className="transition-colors hover:text-brass"
+            className="transition-colors hover:text-brass-text"
           >
             MIT License
           </a>

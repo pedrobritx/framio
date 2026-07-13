@@ -56,7 +56,7 @@ export default function AboutPage() {
       </p>
 
       <section className="mt-12">
-        <h2 className="mb-3 text-xs uppercase tracking-label text-brass">
+        <h2 className="mb-3 text-xs uppercase tracking-label text-brass-text">
           Manifesto
         </h2>
         <div className="space-y-4 font-editorial text-lg leading-relaxed text-ink">
@@ -81,7 +81,7 @@ export default function AboutPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="mb-3 text-xs uppercase tracking-label text-brass">
+        <h2 className="mb-3 text-xs uppercase tracking-label text-brass-text">
           Open &amp; free
         </h2>
         <p className="leading-relaxed text-ink">
@@ -90,7 +90,7 @@ export default function AboutPage() {
             href="https://github.com/pedrobritx/framio/blob/main/LICENSE"
             target="_blank"
             rel="noreferrer"
-            className="text-brass underline-offset-2 hover:underline"
+            className="text-brass-text underline-offset-2 hover:underline"
           >
             MIT License
           </a>
@@ -106,7 +106,7 @@ export default function AboutPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="mb-3 text-xs uppercase tracking-label text-brass">
+        <h2 className="mb-3 text-xs uppercase tracking-label text-brass-text">
           Collections
         </h2>
         <ul className="space-y-1">
@@ -116,7 +116,7 @@ export default function AboutPage() {
                 href={m.url}
                 target="_blank"
                 rel="noreferrer"
-                className="group flex items-center justify-between gap-4 border-t border-stone py-3 text-sm text-ink transition-colors hover:text-brass"
+                className="group flex items-center justify-between gap-4 border-t border-stone py-3 text-sm text-ink transition-colors hover:text-brass-text"
               >
                 <span>{m.full}</span>
                 <ExternalLinkIcon className="shrink-0 text-sm text-ink-soft opacity-0 transition-opacity group-hover:opacity-100" />
@@ -127,7 +127,7 @@ export default function AboutPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="mb-3 text-xs uppercase tracking-label text-brass">
+        <h2 className="mb-3 text-xs uppercase tracking-label text-brass-text">
           Links &amp; support
         </h2>
         <ul className="space-y-1">
@@ -137,11 +137,11 @@ export default function AboutPage() {
                 href={href}
                 target="_blank"
                 rel="noreferrer"
-                className="group flex items-center gap-4 border-t border-stone py-4 transition-colors hover:text-brass"
+                className="group flex items-center gap-4 border-t border-stone py-4 transition-colors hover:text-brass-text"
               >
-                <Icon className="shrink-0 text-xl text-ink-soft transition-colors group-hover:text-brass" />
+                <Icon className="shrink-0 text-xl text-ink-soft transition-colors group-hover:text-brass-text" />
                 <span className="flex-1">
-                  <span className="block text-sm text-ink group-hover:text-brass">
+                  <span className="block text-sm text-ink group-hover:text-brass-text">
                     {label}
                   </span>
                   <span className="block text-xs text-ink-soft">{note}</span>

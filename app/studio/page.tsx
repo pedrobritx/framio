@@ -23,6 +23,7 @@ import {
 import { baseName, fileToDataUrl, UPLOAD_ACCEPT } from '@/lib/studio/upload';
 import { getArtwork } from '@/lib/sources';
 import { getUpload } from '@/lib/store';
+import { announce } from '@/lib/announce';
 import CropStage, { DEFAULT_CROP, type Crop } from '@/components/CropStage';
 import type { Artwork } from '@/lib/types';
 
@@ -212,6 +213,7 @@ function StudioInner() {
           : uploadMetadata(title);
       const blob = await embedJpegMetadata(raw, meta);
       triggerDownload(blob, `framio-${slugify(title)}-${preset.id}.jpg`);
+      announce(`Exported ${title} for ${preset.label}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Export failed');
     } finally {
@@ -235,7 +237,7 @@ function StudioInner() {
         <h1 className="mt-2 font-editorial text-4xl md:text-5xl">Frame any work</h1>
         <p className="mt-5 leading-relaxed text-ink-soft">
           Drop an image to crop it for your Frame — or open an artwork from{' '}
-          <Link href="/" className="text-brass">
+          <Link href="/" className="text-brass-text">
             Browse
           </Link>{' '}
           and choose “Open in Frame Studio”.
@@ -430,7 +432,7 @@ function StudioInner() {
                   type="button"
                   onClick={autoCrop}
                   disabled={autoCropping}
-                  className="text-sm text-ink underline underline-offset-2 decoration-brass transition-colors hover:text-brass disabled:opacity-50"
+                  className="text-sm text-ink underline underline-offset-2 decoration-brass transition-colors hover:text-brass-text disabled:opacity-50"
                 >
                   {autoCropping ? 'Finding the focus…' : 'Auto-crop to the focus'}
                 </button>
