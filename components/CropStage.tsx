@@ -1,38 +1,47 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  coverPlacement,
+  DEFAULT_CROP,
+  type Crop,
+} from '@/lib/studio/geometry';
 
-export interface Crop {
-  zoom: number; // 1..4 — fill multiplier over the 16:9 cover
-  x: number; // -1..1 — horizontal pan within the overflow
-  y: number; // -1..1 — vertical pan within the overflow
-}
-
-export const DEFAULT_CROP: Crop = { zoom: 1, x: 0, y: 0 };
+export { DEFAULT_CROP, type Crop };
 
 function clamp(n: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, n));
 }
 
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 4;
+
 /**
- * Interactive crop locked to the Frame TV's 16:9. The reader drags to
- * reposition and zooms to fill; the cover-scale maths here mirrors the canvas
- * export exactly, so the preview is precisely what ships to the wall.
+ * Interactive crop locked to the export's aspect ratio. Drag (or arrow-key)
+ * to reposition, pinch / scroll / slider to fill; the shared cover-placement
+ * maths mirrors the canvas export exactly, so the preview is precisely what
+ * ships to the wall.
  */
 export default function CropStage({
   src,
   crop,
   onChange,
+  aspect = 16 / 9,
 }: {
   src: string;
   crop: Crop;
   onChange: (c: Crop) => void;
+  /** width / height of the export target (16:9 TV, 9:19.5 phone, …). */
+  aspect?: number;
 }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
   const drag = useRef<{ px: number; py: number; ox: number; oy: number } | null>(
     null,
   );
+  /** Live pointers, for two-finger pinch zoom on touch screens. */
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ dist: number; zoom: number } | null>(null);
   const [, force] = useState(0);
 
   // Re-measure when the stage resizes so the crop stays true to the frame.
@@ -48,29 +57,48 @@ export default function CropStage({
   const geom =
     box && nat
       ? (() => {
-          const Wp = box.clientWidth;
-          const Hp = box.clientHeight;
-          const s = Math.max(Wp / nat.w, Hp / nat.h) * crop.zoom;
-          const dw = nat.w * s;
-          const dh = nat.h * s;
-          const ox = dw - Wp;
-          const oy = dh - Hp;
-          const left = (Wp - dw) / 2 - crop.x * (ox / 2);
-          const top = (Hp - dh) / 2 - crop.y * (oy / 2);
-          return { dw, dh, left, top, ox, oy };
+          const { dw, dh, dx, dy, ox, oy } = coverPlacement(
+            nat.w,
+            nat.h,
+            box.clientWidth,
+            box.clientHeight,
+            crop,
+          );
+          return { dw, dh, left: dx, top: dy, ox, oy };
         })()
       : null;
+
+  const pinchDistance = () => {
+    const pts = Array.from(pointers.current.values());
+    return pts.length >= 2 ? Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) : 0;
+  };
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
       (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-      drag.current = { px: e.clientX, py: e.clientY, ox: crop.x, oy: crop.y };
+      pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.current.size === 2) {
+        // Second finger down — switch from pan to pinch.
+        drag.current = null;
+        pinch.current = { dist: pinchDistance(), zoom: crop.zoom };
+      } else {
+        drag.current = { px: e.clientX, py: e.clientY, ox: crop.x, oy: crop.y };
+      }
     },
-    [crop.x, crop.y],
+    [crop.x, crop.y, crop.zoom],
   );
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
+      if (pointers.current.has(e.pointerId)) {
+        pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
+      const pz = pinch.current;
+      if (pz && pointers.current.size >= 2 && pz.dist > 0) {
+        const zoom = clamp((pinchDistance() / pz.dist) * pz.zoom, MIN_ZOOM, MAX_ZOOM);
+        onChange({ ...crop, zoom });
+        return;
+      }
       const d = drag.current;
       if (!d || !geom) return;
       const dx = e.clientX - d.px;
@@ -83,6 +111,8 @@ export default function CropStage({
   );
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
+    pointers.current.delete(e.pointerId);
+    if (pointers.current.size < 2) pinch.current = null;
     drag.current = null;
     try {
       (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
@@ -91,17 +121,30 @@ export default function CropStage({
     }
   }, []);
 
+  // Trackpad / mouse-wheel zoom, anchored on the current crop.
+  const onWheel = useCallback(
+    (e: React.WheelEvent) => {
+      e.preventDefault();
+      const zoom = clamp(crop.zoom * (e.deltaY < 0 ? 1.05 : 0.95), MIN_ZOOM, MAX_ZOOM);
+      onChange({ ...crop, zoom });
+    },
+    [crop, onChange],
+  );
+
   const grabbable = geom != null && (geom.ox > 1 || geom.oy > 1);
 
   return (
     <div
       ref={boxRef}
-      className="relative aspect-video w-full touch-none select-none overflow-hidden border border-stone bg-ink"
+      // Spatial nav must not steal the arrows while the reader is cropping.
+      data-no-spatial
+      className="relative w-full touch-none select-none overflow-hidden border border-stone bg-ink"
+      style={{ aspectRatio: String(aspect), cursor: grabbable ? 'grab' : 'default' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
-      style={{ cursor: grabbable ? 'grab' : 'default' }}
+      onWheel={onWheel}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img

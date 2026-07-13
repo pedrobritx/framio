@@ -100,10 +100,9 @@ function ArtworkInner() {
     );
   }
 
-  const studio =
-    art.source === 'upload'
-      ? studioHref({ id: art.id, title: art.title })
-      : studioHref({ src: art.imageUrl, title: art.title });
+  // Link Studio by id so it can re-resolve the full work and embed its credit
+  // metadata into the export (the legacy ?src= path still works for drops).
+  const studio = studioHref({ id: art.id, title: art.title });
 
   return (
     <div className="px-6 py-8 md:px-10 md:py-12">

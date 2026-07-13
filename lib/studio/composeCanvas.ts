@@ -1,5 +1,6 @@
 import { TARGET, resolveMatColor, type StudioOptions } from '../frame';
 import { loadImage } from './loadImage';
+import { coverPlacement } from './geometry';
 
 /**
  * Browser Frame Studio engine.
@@ -66,17 +67,15 @@ export async function composeCanvas(
 
   switch (opts.mode) {
     case 'smartCrop': {
-      // Cover the 16:9 canvas, then apply the editor's zoom and pan. With the
+      // Cover the canvas, then apply the editor's zoom and pan. With the
       // defaults (zoom 1, no offset) this is a plain centered cover crop; the
-      // maths mirrors CropStage so the export matches the preview exactly.
-      const zoom = clamp(opts.zoom ?? 1, 1, 4);
-      const scale = Math.max(W / img.width, H / img.height) * zoom;
-      const dw = img.width * scale;
-      const dh = img.height * scale;
-      const ox = dw - W;
-      const oy = dh - H;
-      const dx = (W - dw) / 2 - clamp(opts.offsetX ?? 0, -1, 1) * (ox / 2);
-      const dy = (H - dh) / 2 - clamp(opts.offsetY ?? 0, -1, 1) * (oy / 2);
+      // shared geometry mirrors CropStage so the export matches the preview
+      // exactly.
+      const { dw, dh, dx, dy } = coverPlacement(img.width, img.height, W, H, {
+        zoom: opts.zoom ?? 1,
+        x: opts.offsetX ?? 0,
+        y: opts.offsetY ?? 0,
+      });
       ctx.drawImage(img, dx, dy, dw, dh);
       break;
     }
