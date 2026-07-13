@@ -1,22 +1,36 @@
 # Framio
 
-**Your personal museum.** Framio turns a Samsung Frame TV into a living gallery — browse
-public-domain masterpieces from the world's museums, curate rotating collections, and export
-them perfectly formatted for your screen.
+**Your personal museum.** Framio is an open, living gallery of the world's **open-access** art —
+browse public-domain and CC0 works from real museums, watch them play as an ambient exhibition on
+any screen, and export any piece as a wallpaper for your **TV, phone, tablet, or desktop** with the
+artist's credit embedded in the file.
 
-> **Status:** v0.1 — product definition + MVP scaffold. Personal-first, built to grow.
+> *Art belongs on the walls of the living.* — [the manifesto](MANIFESTO.md)
+
+> **Status:** v0.2 — a living-museum overhaul: multi-device exports, open art descriptions, ambient
+> Watch mode, and an accessibility-first rebuild.
 
 > **Live demo:** [pedrobritx.github.io/framio](https://pedrobritx.github.io/framio/) — a static
-> showcase deployed from the default branch via GitHub Actions.
+> showcase deployed via GitHub Actions.
 
 ---
 
+## Principles
+
+- **Open access only.** Framio works exclusively with genuinely open art — public domain or CC0,
+  from museums' own open-access programs. In-copyright works are surfaced for discovery, never
+  download.
+- **Credit travels with the art.** Every export embeds the artist, title, museum, and license in
+  the file itself. We never take credit for others' work.
+- **Access is the point.** Open, community-written descriptions let art be met without being seen,
+  and every screen — remote, touch, or keyboard — is a first-class way in.
+
 ## Why
 
-Frame TV owners hunt for high-quality public-domain art, download it by hand, crop it for a 16:9
-screen, and lose quality along the way. Framio replaces that with a calm, gallery-like app that
-**discovers, curates, and frames** art for you. It is not a wallpaper manager — it is a personal
-curator that lives between the museum and your wall.
+Frame TV owners hunt for high-quality public-domain art, download it by hand, crop it, and lose
+quality along the way — and there was nowhere calm to just *live* with open-access art across all
+their screens. Framio replaces that with a gallery-like app that **discovers, curates, frames, and
+credits** art for you. It is not a wallpaper manager — it is a quiet way to keep art close.
 
 ## What it does
 
@@ -34,15 +48,22 @@ curator that lives between the museum and your wall.
   movement, culture, period, medium, mood, colour, and topic.
 - **Related works** — every artwork page surfaces more by the same hand, for serendipitous
   discovery.
-- **Bring your own image** — drop a photo, it's sized for your Frame and crops in Frame Studio.
-- **Light / dark** — a one-tap theme switch (sun/moon) in the top bar, remembered on your device.
-- **Favorite** works and organize them into **Collections** (your own "exhibitions") — the queue
-  you crop in Frame Studio and send to the TV. Selections persist locally on your device.
-- **Mobile-first** layout: a left rail on desktop, a bottom tab bar on phones, proportions intact.
-- **Import** your own images into your Library.
-- **Frame Studio** composes any artwork onto a flawless **3840×2160 (16:9)** canvas — museum mat,
-  smart crop, blur-extend, or floating canvas.
-- **Export for Frame** → a TV-ready file you load onto your Frame via SmartThings or USB.
+- **Open art descriptions** — visual descriptions of works, from museums where they publish them
+  and from an open [community CC0 dataset](data/descriptions.json) anyone can add to. They become
+  the image's alt text, appear on the artwork page and in Watch mode, and are embedded in exports.
+- **Watch mode** — a full-screen ambient exhibition of any collection, your favorites, or the day's
+  mood: art shown whole, credits always visible, driven by a TV remote, touch, or keyboard.
+- **Multi-device export** — Frame Studio frames any work for **The Frame TV, a phone, a tablet, or
+  a desktop**, auto-cropping to the piece's most interesting region for each shape, with **artist,
+  museum, and license embedded (EXIF + XMP)** in every file. See [`docs/EXPORTS.md`](docs/EXPORTS.md).
+- **Every device, its own way in** — a left rail and keyboard shortcuts on desktop, a bottom tab bar
+  and touch on phone/tablet, D-pad spatial navigation for TV remotes.
+- **Bring your own image** — drop a photo and crop it for any screen (never stamped with a rights
+  claim it doesn't have).
+- **Light / dark** — a one-tap theme switch, remembered on your device.
+- **Favorite** works and organize them into **Collections** (your own "exhibitions") to watch or
+  bundle-export. Selections persist locally on your device.
+- **Installable** — a PWA manifest and icons make Framio add-to-home-screen ready.
 
 ## The Frame, briefly
 
@@ -53,26 +74,33 @@ Automated push to the TV (a small home-network **Frame Bridge**) is on the roadm
 
 ## Tech
 
-Next.js + TypeScript + Tailwind · Supabase (Postgres + Storage) · Sharp/libvips · The Met Collection API
+Next.js + React + TypeScript + Tailwind · keyless in-browser museum APIs · Vitest · Sharp/libvips
+(icons + reference export pipeline) · Supabase (optional persistence)
 
 ## Quickstart
 
 ```bash
 npm install
-cp .env.example .env.local      # Met API needs no key; Supabase is optional for persistence
+cp .env.example .env.local      # museum APIs need no keys; Supabase is optional for persistence
 npm run dev                     # http://localhost:3000
+
+npm test                        # unit tests (Vitest)
+npm run typecheck && npm run lint
 ```
 
-Browse works immediately against the live Met API. Collections, Favorites, and Uploads persist once
-you connect a Supabase project (see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
+Browse works immediately against the live keyless museum APIs. Favorites, Collections, and Uploads
+persist in your browser's localStorage; a Supabase project can later mirror them across devices
+(see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
 
 ## Deploy (GitHub Pages)
 
 The app ships as a **static export** (`next build` with `output: 'export'`) hosted on GitHub Pages.
 
-- **CI** (`.github/workflows/ci.yml`) typechecks, lints, and builds on every push and PR.
-- **Deploy** (`.github/workflows/deploy.yml`) builds and publishes to Pages on every push to the
-  default branch (and daily, so *Artwork of the Day* and the curated set stay fresh).
+- **CI** (`.github/workflows/ci.yml`) typechecks, lints, tests, and builds on every push and PR.
+- **Deploy** (`.github/workflows/deploy.yml`) builds and publishes to Pages on push to the deploy
+  branch (and daily, so *Artwork of the Day* and the curated set stay fresh).
+- **CodeQL** (`.github/workflows/codeql.yml`) scans for vulnerabilities; Dependabot keeps
+  dependencies and actions current.
 
 To enable it once: **Settings → Pages → Build and deployment → Source: GitHub Actions.** The base
 path (`/framio`) is injected automatically from the Pages config via `PAGES_BASE_PATH`.
@@ -96,12 +124,17 @@ Frame Bridge deployment (Phase 2).
 
 ```
 framio/
-├─ app/                 # Next.js App Router (Browse, Artwork, Frame Studio, …)
-├─ lib/                 # met client · gallery (curated set) · studio compositors · supabase
+├─ app/                 # Next.js App Router (Discover, Artwork, Studio, Watch, …)
+├─ components/          # UI (cards, Watch, CropStage, nav, a11y helpers)
+├─ lib/                 # museum adapters · curation · devices · studio (crop, saliency, metadata)
+│  └─ studio/           # geometry · saliency crop · metadata embedding · canvas compositor
+├─ data/descriptions.json  # open, CC0 community art descriptions
+├─ test/fixtures/       # recorded museum API responses for unit tests
+├─ scripts/icons.mjs    # renders app icons from SVG at build
 ├─ styles/tokens.css    # Framio design tokens (palette + type)
-├─ supabase/migrations/ # database schema
-├─ .github/workflows/   # CI (typecheck/lint/build) · Pages deploy
-├─ docs/                # product, branding, screens, architecture, frame-tv (+ diagrams)
+├─ supabase/migrations/ # optional database schema
+├─ .github/             # CI · Pages deploy · CodeQL · dependabot · issue/PR templates
+├─ docs/                # product, exports, descriptions, open-access, adapters, architecture…
 └─ design/              # Figma references
 ```
 
@@ -109,11 +142,16 @@ framio/
 
 | Doc | What's inside |
 | --- | --- |
+| [`MANIFESTO.md`](MANIFESTO.md) | Why Framio exists: credit, open access, accessibility |
 | [`docs/PRODUCT.md`](docs/PRODUCT.md) | Problem, vision, users, pillars, MVP scope, roadmap |
+| [`docs/EXPORTS.md`](docs/EXPORTS.md) | Per-device export presets, embedded credit, how-to |
+| [`docs/DESCRIPTIONS.md`](docs/DESCRIPTIONS.md) | Contributing open, CC0 art descriptions |
+| [`docs/OPEN-ACCESS.md`](docs/OPEN-ACCESS.md) | For museums: how to open a collection to Framio |
+| [`docs/ADAPTERS.md`](docs/ADAPTERS.md) | For developers: writing a museum adapter |
 | [`docs/BRANDING.md`](docs/BRANDING.md) | Voice, palette (hex), typography, motion, logo |
-| [`docs/SCREENS.md`](docs/SCREENS.md) | Every screen: contents, interactions, states |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Stack, data model, Met API, export pipeline |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Stack, data model, museum APIs, export pipeline |
 | [`docs/FRAME-TV.md`](docs/FRAME-TV.md) | 16:9/4K facts, upload methods, copyright notes |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Dev setup, tests, how to contribute |
 
 ## Roadmap (short)
 
@@ -130,9 +168,16 @@ framio/
 
 Framio began with a simple want: beautiful art on my own TV. The Samsung Frame turns a screen into
 a canvas, but filling it meant hunting for high-resolution public-domain images and cropping them by
-hand. So I built the tool I wished existed — and it grew from dressing one screen into a calm,
-gallery-like hub for anyone to wander the world's open collections. Read the full
-[manifesto in the app](https://pedrobritx.github.io/framio/about/).
+hand. So I built the tool I wished existed — and it grew from dressing one screen into a living,
+interactive way to make open-access art part of a day, on every screen. Read the full
+[**manifesto**](MANIFESTO.md).
+
+## Feedback & contributing
+
+Tell me what you think — the good and the graceless — at **pedrobritx@gmail.com**. Contributions
+are welcome: write an [art description](docs/DESCRIPTIONS.md), help a
+[museum open its collection](docs/OPEN-ACCESS.md), add an [adapter](docs/ADAPTERS.md), or fix a bug.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Credits & rights
 

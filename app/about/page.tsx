@@ -4,6 +4,7 @@ import {
   ExternalLinkIcon,
   GitHubIcon,
   LinkedInIcon,
+  MailIcon,
 } from '@/components/icons';
 import { MUSEUMS } from '@/lib/museums';
 
@@ -38,6 +39,12 @@ const LINKS: {
     Icon: ExternalLinkIcon,
   },
   {
+    href: 'mailto:pedrobritx@gmail.com',
+    label: 'Send feedback',
+    note: 'pedrobritx@gmail.com',
+    Icon: MailIcon,
+  },
+  {
     href: 'https://buymeacoffee.com/pedrobritx',
     label: 'Buy me a coffee',
     note: 'Support the project',
@@ -51,7 +58,7 @@ export default function AboutPage() {
       <p className="eyebrow">About</p>
       <h1 className="mt-2 font-editorial text-4xl md:text-5xl">Framio</h1>
       <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-        A personal museum for your wall — and a calm place to wander the open
+        A living museum for every screen — and a calm place to wander the open
         collections of the world.
       </p>
 
@@ -59,25 +66,44 @@ export default function AboutPage() {
         <h2 className="mb-3 text-xs uppercase tracking-label text-brass-text">
           Manifesto
         </h2>
+        <p className="mb-4 font-editorial text-xl italic leading-relaxed text-ink">
+          Art belongs on the walls of the living.
+        </p>
         <div className="space-y-4 font-editorial text-lg leading-relaxed text-ink">
           <p>
             Framio began with a simple want: beautiful art on my own television.
             The Samsung Frame turns a screen into a canvas, but filling it meant
-            hunting for high-resolution public-domain images, cropping them by
-            hand to 16:9, and losing quality along the way.
+            hunting for high-resolution public-domain images and cropping them by
+            hand. So I built the tool I wished existed — and it grew past the one
+            screen, into a living, interactive way to make art part of a day: on
+            the TV, the phone, the tablet, the desk.
           </p>
           <p>
-            So I built the tool I wished existed — and then it grew. What started
-            as a way to dress one screen became a gallery-like hub for anyone: a
-            single place to discover the open collections of the world&apos;s
-            great museums, curate your own rotating exhibitions, and frame any
-            work for your wall.
+            We never take credit for others&apos; work. Every piece names its
+            maker, and every file Framio exports carries the artist, museum, and
+            license embedded inside it — so credit travels with the image
+            wherever it goes.
           </p>
           <p>
-            It is not a wallpaper manager. It is a quiet curator that lives
-            between the museum and your room.
+            Framio works only with art that is genuinely open — public domain or
+            CC0, from museums&apos; own programs. What the public funded and time
+            returned to everyone belongs to everyone.
+          </p>
+          <p>
+            And access is the point, not an afterthought: open, community-written
+            descriptions so art can be met without being seen, and an interface
+            that works by remote, by touch, and by keyboard alike. If a person
+            cannot experience the art, the museum isn&apos;t really open yet.
           </p>
         </div>
+        <a
+          href="https://github.com/pedrobritx/framio/blob/main/MANIFESTO.md"
+          target="_blank"
+          rel="noreferrer"
+          className="mt-4 inline-block text-sm text-brass-text underline-offset-2 hover:underline"
+        >
+          Read the full manifesto →
+        </a>
       </section>
 
       <section className="mt-12">
@@ -99,9 +125,18 @@ export default function AboutPage() {
         </p>
         <p className="mt-3 leading-relaxed text-ink-soft">
           The artwork itself is open access — public domain or CC0 — sourced
-          directly from the museums&apos; own programs. Framio shows only works it
-          can source under open licenses; in-copyright pieces are surfaced for
-          discovery, not download.
+          directly from the museums&apos; own open-access programs, never
+          scraped or repackaged. Framio shows only works it can source under
+          open licenses; in-copyright pieces are surfaced for discovery, never
+          for download. Are you a museum or gallery?{' '}
+          <a
+            href="https://github.com/pedrobritx/framio/blob/main/docs/OPEN-ACCESS.md"
+            target="_blank"
+            rel="noreferrer"
+            className="text-brass-text underline-offset-2 hover:underline"
+          >
+            Open your collection to Framio.
+          </a>
         </p>
       </section>
 
