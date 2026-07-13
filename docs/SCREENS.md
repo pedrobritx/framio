@@ -98,24 +98,26 @@ Your **exhibitions**.
   and used to order an exported set; **Phase 2** the Frame Bridge enacts them live on the TV.
 
 **Interactions:** drag to reorder, swipe/long-press to remove, set any work as cover, **Export
-collection** (batch 3840×2160 files).
+collection** (batch files, one device preset applied to every work).
 
 ## 7. Frame Studio  ⭐ flagship
 
-**Purpose:** turn any artwork into a flawless 3840×2160 (16:9) file.
+**Purpose:** turn any artwork into a flawless file for whatever screen it's headed to — the Frame
+TV, a phone, a tablet, or a desktop.
 
-**Layout:** a large **live 16:9 preview** (a Frame on a gallery wall), a mode switcher, and fine
-controls.
+**Layout:** a large **live preview** matching the chosen device's shape, a device picker, a mode
+switcher, and fine controls.
 
 **Modes:** **Museum Mat** · **Floating Canvas** · **Smart Crop** · **Blur Extend**
 (see [`PRODUCT.md`](PRODUCT.md#6-the-differentiator-frame-studio) and
 [`ARCHITECTURE.md`](ARCHITECTURE.md#frame-studio-pipeline)).
 
-**Controls:** mat color (ivory/charcoal/custom), margin/zoom, crop position (for Smart Crop), and an
-output toggle (always 3840×2160 sRGB JPEG for the 55" Frame).
+**Controls:** device preset (Frame TV / phone / tablet / desktop), mat color (ivory/charcoal/custom),
+margin/zoom, crop position (for Smart Crop), and an output toggle (sRGB JPEG at the chosen device's
+native resolution — 3840×2160 for the default 55" Frame).
 
-**Actions:** **Export for Frame** (downloads the file) · **Add to Collection** (stores the work +
-its studio settings). *Phase 2:* **Send to Frame** (push via Bridge).
+**Actions:** **Export** (downloads the file, credit embedded) · **Add to Collection** (stores the
+work + its studio settings). *Phase 2:* **Send to Frame** (push via Bridge, TV only).
 
 **States:** preview re-renders debounced as controls change; export shows a calm progress line.
 
@@ -129,8 +131,8 @@ its studio settings). *Phase 2:* **Send to Frame** (push via Bridge).
 
 ## 9. Settings
 
-- **Frame** — your TV size/spec (defaults to 55" / 3840×2160); *Phase 2:* pair the Frame Bridge
-  (TV IP + token, connection status).
+- **Frame** — your Frame TV size/spec (defaults to 55" / 3840×2160); *Phase 2:* pair the Frame
+  Bridge (TV IP + token, connection status).
 - **Appearance** — Light "Gallery Wall" / Dark "Exhibition Room" / Auto.
 - **Output** — default Frame Studio mode and mat color, JPEG quality.
 - **About** — sources, rights, version.

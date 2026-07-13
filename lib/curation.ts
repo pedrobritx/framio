@@ -231,13 +231,37 @@ export function exhibitionBySlug(
   return EXHIBITIONS.find((e) => e.slug === slug);
 }
 
-/* ---------------------------------------------------------------- the Frame */
+/* ------------------------------------------------------------- aspect fit */
 
 /** Every Samsung Frame is 16:9. */
 export const FRAME_ASPECT = 16 / 9; // ≈ 1.778
 
-/** Does a work crop onto the Frame without heavy loss? (lenient band) */
-export function fitsFrame(aspect: number | undefined): boolean {
+/**
+ * Does a work crop onto a target aspect ratio without heavy loss? A lenient
+ * band either side of the target — device-agnostic, so any screen shape
+ * (not just the Frame's 16:9) can ask "does this fit me?" `tolerance` can be
+ * asymmetric (e.g. a looser lower bound), matching how `fitsFrame`'s original
+ * band was never perfectly centred on 16:9.
+ */
+export function fitsAspect(
+  aspect: number | undefined,
+  targetAspect: number,
+  tolerance: number | { lower: number; upper: number } = 0.3,
+): boolean {
   if (!aspect) return false;
-  return aspect >= 1.4 && aspect <= 2.1;
+  const lower = typeof tolerance === 'number' ? tolerance : tolerance.lower;
+  const upper = typeof tolerance === 'number' ? tolerance : tolerance.upper;
+  return aspect >= targetAspect - lower && aspect <= targetAspect + upper;
+}
+
+/**
+ * Does a work crop onto the Frame's 16:9 without heavy loss? Kept as an exact,
+ * behavior-preserving alias of the original lenient band (1.4–2.1) — every
+ * existing call site (the "Fits your Frame" badge/checkbox) is unaffected.
+ */
+export function fitsFrame(aspect: number | undefined): boolean {
+  return fitsAspect(aspect, FRAME_ASPECT, {
+    lower: FRAME_ASPECT - 1.4,
+    upper: 2.1 - FRAME_ASPECT,
+  });
 }
