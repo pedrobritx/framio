@@ -29,4 +29,13 @@ export interface Artwork {
   aspect?: number;
   /** Dominant colour (currently from the Art Institute of Chicago's data). */
   color?: ArtColor;
+  /** Museum- or community-provided prose about the work (plain text). */
+  description?: string;
+  /**
+   * Curated image alt text — a visual description written for access, not a
+   * caption. AIC publishes one; the community dataset can add more.
+   */
+  altText?: string;
+  /** Where the description came from — credited in the UI. */
+  descriptionSource?: 'museum' | 'community';
 }

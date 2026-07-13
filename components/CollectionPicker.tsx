@@ -9,6 +9,8 @@ import {
   useCollectionsContaining,
   useStore,
 } from '@/lib/store';
+import { announce } from '@/lib/announce';
+import { trapFocus } from '@/lib/focus-trap';
 import { CheckIcon, PlusIcon } from './icons';
 
 /**
@@ -28,6 +30,7 @@ export default function CollectionPicker({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const ref = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -39,9 +42,11 @@ export default function CollectionPicker({
     }
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
+    const releaseTrap = panelRef.current ? trapFocus(panelRef.current) : undefined;
     return () => {
       document.removeEventListener('mousedown', onDown);
       document.removeEventListener('keydown', onKey);
+      releaseTrap?.();
     };
   }, [open]);
 
@@ -58,6 +63,7 @@ export default function CollectionPicker({
     if (!trimmed) return;
     const id = createCollection(trimmed);
     addToCollection(id, art);
+    announce(`Added to ${trimmed}`);
     setName('');
   }
 
@@ -71,7 +77,7 @@ export default function CollectionPicker({
           onClick={toggle}
           aria-expanded={open}
           className={`flex items-center gap-2 border px-5 py-2.5 text-sm transition-colors duration-300 ease-gallery ${
-            count ? 'border-brass bg-brass/10 text-brass' : 'border-stone hover:border-brass'
+            count ? 'border-brass bg-brass/10 text-brass-text' : 'border-stone hover:border-brass'
           }`}
         >
           <PlusIcon className="text-base" />
@@ -84,7 +90,7 @@ export default function CollectionPicker({
           aria-expanded={open}
           aria-label="Add to collection"
           className={`flex h-8 w-8 items-center justify-center rounded-full bg-paper/90 text-base shadow-sm backdrop-blur transition-colors duration-300 ease-gallery hover:bg-paper ${
-            count ? 'text-brass' : 'text-ink'
+            count ? 'text-brass-text' : 'text-ink'
           }`}
         >
           <PlusIcon />
@@ -92,7 +98,12 @@ export default function CollectionPicker({
       )}
 
       {open && (
-        <div className="absolute right-0 z-30 mt-2 w-60 border border-stone bg-paper p-3 text-left shadow-lg">
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-label="Add to collection"
+          className="absolute right-0 z-30 mt-2 w-60 border border-stone bg-paper p-3 text-left shadow-lg"
+        >
           <p className="mb-2 text-xs uppercase tracking-label text-ink-soft">
             Add to collection
           </p>
@@ -108,15 +119,20 @@ export default function CollectionPicker({
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        if (inIt) removeFromCollection(c.id, art.id);
-                        else addToCollection(c.id, art);
+                        if (inIt) {
+                          removeFromCollection(c.id, art.id);
+                          announce(`Removed from ${c.name}`);
+                        } else {
+                          addToCollection(c.id, art);
+                          announce(`Added to ${c.name}`);
+                        }
                       }}
                       className="flex w-full items-center justify-between gap-2 px-2 py-1.5 text-left text-sm transition-colors hover:bg-ivory"
                     >
                       <span className="truncate">{c.name}</span>
                       <span
                         className={`flex h-4 w-4 shrink-0 items-center justify-center text-xs ${
-                          inIt ? 'text-brass' : 'text-stone'
+                          inIt ? 'text-brass-text' : 'text-stone'
                         }`}
                       >
                         {inIt && <CheckIcon />}

@@ -6,6 +6,7 @@ import ArtworkCard from '@/components/ArtworkCard';
 import ArtImage from '@/components/ArtImage';
 import { SearchIcon } from '@/components/icons';
 import { artworkHref } from '@/lib/links';
+import { artAlt } from '@/lib/a11y';
 import {
   ARTISTS,
   CULTURES,
@@ -141,7 +142,7 @@ function ChipRow({
               className={`rounded-full border px-3 py-1.5 text-sm transition-colors duration-300 ease-gallery ${
                 active
                   ? 'border-brass bg-brass text-paper'
-                  : 'border-stone text-ink hover:border-brass hover:text-brass'
+                  : 'border-stone text-ink hover:border-brass hover:text-brass-text'
               }`}
             >
               {o.label}
@@ -306,6 +307,7 @@ export default function Discover({
         <label className="flex min-w-0 flex-1 items-center gap-3 border border-stone bg-paper px-4 transition-colors focus-within:border-brass">
           <SearchIcon className="shrink-0 text-lg text-ink-soft" />
           <input
+            id="artwork-search"
             type="search"
             value={state.text}
             onChange={(e) => update({ text: e.target.value })}
@@ -331,8 +333,8 @@ export default function Discover({
           aria-controls="filter-panel"
           className={`shrink-0 border px-4 py-3 text-sm transition-colors duration-300 ease-gallery ${
             filterCount
-              ? 'border-brass bg-brass/10 text-brass'
-              : 'border-stone text-ink hover:border-brass hover:text-brass'
+              ? 'border-brass bg-brass/10 text-brass-text'
+              : 'border-stone text-ink hover:border-brass hover:text-brass-text'
           }`}
         >
           Filters{filterCount ? ` · ${filterCount}` : ''}
@@ -354,7 +356,7 @@ export default function Discover({
                 className={`rounded-full border px-3 py-1.5 text-sm transition-colors duration-300 ease-gallery ${
                   active
                     ? 'border-brass bg-brass text-paper'
-                    : 'border-stone text-ink hover:border-brass hover:text-brass'
+                    : 'border-stone text-ink hover:border-brass hover:text-brass-text'
                 }`}
               >
                 {a}
@@ -372,7 +374,7 @@ export default function Discover({
               key={p.key}
               type="button"
               onClick={() => removePill(p.key)}
-              className="group inline-flex items-center gap-1.5 rounded-full border border-brass bg-brass/10 py-1 pl-3 pr-2 text-sm text-brass transition-colors hover:bg-brass hover:text-paper"
+              className="group inline-flex items-center gap-1.5 rounded-full border border-brass bg-brass/10 py-1 pl-3 pr-2 text-sm text-brass-text transition-colors hover:bg-brass hover:text-paper"
               aria-label={`Remove filter ${p.label}`}
             >
               {p.label}
@@ -482,7 +484,7 @@ export default function Discover({
                     className={`rounded-full border px-3 py-1.5 text-sm transition-colors duration-300 ease-gallery ${
                       active
                         ? 'border-brass bg-brass text-paper'
-                        : 'border-stone text-ink hover:border-brass hover:text-brass'
+                        : 'border-stone text-ink hover:border-brass hover:text-brass-text'
                     }`}
                   >
                     {src.label}
@@ -579,7 +581,7 @@ export default function Discover({
                     type="button"
                     onClick={loadMore}
                     disabled={loadingMore}
-                    className="border border-stone px-6 py-3 text-sm text-ink transition-colors duration-300 ease-gallery hover:border-brass hover:text-brass disabled:opacity-50"
+                    className="border border-stone px-6 py-3 text-sm text-ink transition-colors duration-300 ease-gallery hover:border-brass hover:text-brass-text disabled:opacity-50"
                   >
                     {loadingMore ? 'Loading…' : 'Load more'}
                   </button>
@@ -597,7 +599,7 @@ export default function Discover({
                 key={s}
                 type="button"
                 onClick={() => update({ school: s })}
-                className="rounded-full border border-stone px-3 py-1.5 text-sm text-ink transition-colors duration-300 ease-gallery hover:border-brass hover:text-brass"
+                className="rounded-full border border-stone px-3 py-1.5 text-sm text-ink transition-colors duration-300 ease-gallery hover:border-brass hover:text-brass-text"
               >
                 {s}
               </button>
@@ -607,7 +609,7 @@ export default function Discover({
                 key={t.label}
                 type="button"
                 onClick={() => update({ topic: t.label })}
-                className="rounded-full border border-stone px-3 py-1.5 text-sm text-ink transition-colors duration-300 ease-gallery hover:border-brass hover:text-brass"
+                className="rounded-full border border-stone px-3 py-1.5 text-sm text-ink transition-colors duration-300 ease-gallery hover:border-brass hover:text-brass-text"
               >
                 {t.label}
               </button>
@@ -618,7 +620,7 @@ export default function Discover({
             <section aria-labelledby="hero-heading">
               <p
                 id="hero-heading"
-                className="mb-3 text-xs uppercase tracking-label text-brass"
+                className="mb-3 text-xs uppercase tracking-label text-brass-text"
               >
                 Artwork of the Day
               </p>
@@ -626,7 +628,7 @@ export default function Discover({
                 <div className="relative aspect-[16/9] overflow-hidden border border-stone bg-ivory">
                   <ArtImage
                     src={hero.imageUrl}
-                    alt={`${hero.title} by ${hero.artist}`}
+                    alt={artAlt(hero)}
                     label={hero.title}
                     loading="eager"
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-gallery group-hover:scale-[1.03]"

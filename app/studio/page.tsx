@@ -3,19 +3,29 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { type StudioMode } from '@/lib/frame';
 import {
-  DEFAULT_FRAME_ID,
-  frameById,
-  getFrameSize,
-  type FrameSize,
-  type StudioMode,
-} from '@/lib/frame';
+  DEFAULT_PRESET_ID,
+  DEVICE_PRESETS,
+  presetAspect,
+  presetById,
+  presetResolution,
+  type DevicePreset,
+} from '@/lib/devices';
 import { composeCanvas } from '@/lib/studio/composeCanvas';
-import { triggerDownload } from '@/lib/studio/download';
+import { triggerDownload, slugify } from '@/lib/studio/download';
+import { suggestCrop } from '@/lib/studio/saliency';
+import {
+  embedJpegMetadata,
+  metadataFor,
+  uploadMetadata,
+} from '@/lib/studio/metadata';
 import { baseName, fileToDataUrl, UPLOAD_ACCEPT } from '@/lib/studio/upload';
 import { getArtwork } from '@/lib/sources';
 import { getUpload } from '@/lib/store';
+import { announce } from '@/lib/announce';
 import CropStage, { DEFAULT_CROP, type Crop } from '@/components/CropStage';
+import type { Artwork } from '@/lib/types';
 
 const MODES: { id: StudioMode; label: string; blurb: string }[] = [
   { id: 'museumMat', label: 'Museum Mat', blurb: 'Centered on an elegant mat.' },
@@ -35,16 +45,18 @@ function Preview({
   mode,
   matHex,
   margin,
+  aspect,
 }: {
   src: string;
   mode: StudioMode;
   matHex: string;
   margin: number;
+  aspect: number;
 }) {
   return (
     <div
-      className="relative aspect-video w-full overflow-hidden border border-stone"
-      style={{ background: matHex }}
+      className="relative w-full overflow-hidden border border-stone"
+      style={{ background: matHex, aspectRatio: String(aspect) }}
     >
       {mode === 'blurExtend' && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -79,26 +91,33 @@ function StudioInner() {
   const sp = useSearchParams();
   const directSrc = sp.get('src') ?? '';
   const id = sp.get('id') ?? '';
+  // The full artwork, when known — so exports can embed its credit metadata.
+  const [resolvedArt, setResolvedArt] = useState<Artwork | null>(null);
   const [resolvedSrc, setResolvedSrc] = useState('');
   const [resolvedTitle, setResolvedTitle] = useState('');
   // An image dropped straight into the studio (no Browse / Library detour).
   const [localSrc, setLocalSrc] = useState('');
   const [localTitle, setLocalTitle] = useState('');
-  // The reader's saved Frame size drives the export resolution. Start from the
-  // default (matches the prerendered HTML), then read the saved choice on mount.
-  const [frame, setFrame] = useState<FrameSize>(frameById(DEFAULT_FRAME_ID));
+  // The chosen device preset drives the export resolution and aspect. Start
+  // from the Frame default (matches the prerendered HTML), read saved sizes
+  // on mount.
+  const [preset, setPreset] = useState<DevicePreset>(presetById(DEFAULT_PRESET_ID));
+  const [resolution, setResolution] = useState(() =>
+    presetResolution(presetById(DEFAULT_PRESET_ID)),
+  );
 
   useEffect(() => {
-    setFrame(getFrameSize());
-  }, []);
+    setResolution(presetResolution(preset));
+  }, [preset]);
 
-  // A work can arrive by direct image URL (?src=…, museum works) or by id
+  // A work can arrive by direct image URL (?src=…, legacy links) or by id
   // (?id=upload:… / met:… ), resolved here client-side.
   useEffect(() => {
-    if (directSrc || !id) return;
+    if (!id) return;
     if (id.startsWith('upload:')) {
       const up = getUpload(id);
       if (up) {
+        setResolvedArt(up);
         setResolvedSrc(up.imageUrl);
         setResolvedTitle(up.title);
       }
@@ -107,13 +126,14 @@ function StudioInner() {
     let active = true;
     getArtwork(id).then((art) => {
       if (!active || !art) return;
+      setResolvedArt(art);
       setResolvedSrc(art.imageUrl);
       setResolvedTitle(art.title);
     });
     return () => {
       active = false;
     };
-  }, [directSrc, id]);
+  }, [id]);
 
   const src = directSrc || resolvedSrc || localSrc;
   const title =
@@ -124,11 +144,18 @@ function StudioInner() {
   const [margin, setMargin] = useState(0.08);
   const [crop, setCrop] = useState<Crop>(DEFAULT_CROP);
   const [busy, setBusy] = useState(false);
+  const [autoCropping, setAutoCropping] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const aspect = presetAspect(preset);
   const matHex = MATS.find((m) => m.key === matKey)?.hex ?? '#F7F4EF';
   const showMatControls = mode === 'museumMat' || mode === 'floating';
   const isCrop = mode === 'smartCrop';
+
+  // A crop's pan offsets are meaningless once the target aspect changes; reset.
+  useEffect(() => {
+    setCrop(DEFAULT_CROP);
+  }, [preset.id]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -153,22 +180,40 @@ function StudioInner() {
     }
   }
 
+  async function autoCrop() {
+    if (!src) return;
+    setAutoCropping(true);
+    try {
+      setCrop(await suggestCrop(src, aspect));
+    } finally {
+      setAutoCropping(false);
+    }
+  }
+
   async function exportFrame() {
     if (!src) return;
     setBusy(true);
     setError(null);
     try {
-      const blob = await composeCanvas(src, {
+      const raw = await composeCanvas(src, {
         mode,
         matColor: matKey,
         margin,
         zoom: crop.zoom,
         offsetX: crop.x,
         offsetY: crop.y,
-        width: frame.width,
-        height: frame.height,
+        width: resolution.width,
+        height: resolution.height,
       });
-      triggerDownload(blob, `framio-${frame.width}x${frame.height}.jpg`);
+      // Credit travels with the file. Museum works carry the full record;
+      // a user's own image gets only its title (never a CC0 claim).
+      const meta =
+        resolvedArt && resolvedArt.source !== 'upload'
+          ? metadataFor(resolvedArt)
+          : uploadMetadata(title);
+      const blob = await embedJpegMetadata(raw, meta);
+      triggerDownload(blob, `framio-${slugify(title)}-${preset.id}.jpg`);
+      announce(`Exported ${title} for ${preset.label}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Export failed');
     } finally {
@@ -192,7 +237,7 @@ function StudioInner() {
         <h1 className="mt-2 font-editorial text-4xl md:text-5xl">Frame any work</h1>
         <p className="mt-5 leading-relaxed text-ink-soft">
           Drop an image to crop it for your Frame — or open an artwork from{' '}
-          <Link href="/" className="text-brass">
+          <Link href="/" className="text-brass-text">
             Browse
           </Link>{' '}
           and choose “Open in Frame Studio”.
@@ -257,19 +302,47 @@ function StudioInner() {
         <div>
           <div className="bg-sand p-4 md:p-8">
             {isCrop ? (
-              <CropStage src={src} crop={crop} onChange={setCrop} />
+              <CropStage src={src} crop={crop} onChange={setCrop} aspect={aspect} />
             ) : (
-              <Preview src={src} mode={mode} matHex={matHex} margin={margin} />
+              <Preview
+                src={src}
+                mode={mode}
+                matHex={matHex}
+                margin={margin}
+                aspect={aspect}
+              />
             )}
           </div>
           <p className="mt-3 text-xs uppercase tracking-label text-ink-soft">
             {isCrop
-              ? 'Drag to reposition · zoom to fill. Locked to your Frame’s 16:9.'
-              : `Preview · approximate. Export renders the true ${frame.width}×${frame.height} file.`}
+              ? `Drag to reposition · pinch or scroll to fill. Locked to ${preset.label}.`
+              : `Preview · approximate. Export renders the true ${resolution.width}×${resolution.height} file.`}
           </p>
         </div>
 
         <aside className="space-y-8">
+          <div className="space-y-3">
+            <p className="eyebrow">Device</p>
+            <div className="grid grid-cols-2 gap-2">
+              {DEVICE_PRESETS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setPreset(p)}
+                  aria-pressed={preset.id === p.id}
+                  className={`border p-3 text-left transition-colors duration-300 ease-gallery ${
+                    preset.id === p.id
+                      ? 'border-brass'
+                      : 'border-stone hover:border-ink-soft'
+                  }`}
+                >
+                  <span className="block text-sm">{p.label}</span>
+                  <span className="mt-1 block text-xs text-ink-soft">{p.note}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-3">
             <p className="eyebrow">Mode</p>
             <div className="grid grid-cols-2 gap-2">
@@ -354,13 +427,27 @@ function StudioInner() {
                 aria-label="Zoom"
                 className="w-full accent-brass"
               />
-              <button
-                type="button"
-                onClick={() => setCrop(DEFAULT_CROP)}
-                className="text-sm text-ink-soft underline-offset-2 transition-colors hover:text-ink hover:underline"
-              >
-                Reset crop
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={autoCrop}
+                  disabled={autoCropping}
+                  className="text-sm text-ink underline underline-offset-2 decoration-brass transition-colors hover:text-brass-text disabled:opacity-50"
+                >
+                  {autoCropping ? 'Finding the focus…' : 'Auto-crop to the focus'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCrop(DEFAULT_CROP)}
+                  className="text-sm text-ink-soft underline-offset-2 transition-colors hover:text-ink hover:underline"
+                >
+                  Reset crop
+                </button>
+              </div>
+              <p className="text-xs text-ink-soft">
+                Auto-crop centres the artwork&apos;s most visually active
+                region for {preset.label}. Drag to adjust.
+              </p>
             </div>
           )}
 
@@ -371,11 +458,15 @@ function StudioInner() {
               disabled={busy}
               className="w-full bg-ink px-5 py-3 text-sm text-paper transition-colors duration-300 ease-gallery hover:bg-brass disabled:opacity-50"
             >
-              {busy ? 'Composing…' : 'Export for Frame'}
+              {busy ? 'Composing…' : `Export for ${preset.label}`}
             </button>
             <p className="text-xs text-ink-soft">
-              {frame.width}×{frame.height} · sRGB JPEG · sized for your {frame.label}{' '}
-              Frame. Load it via SmartThings or USB (see docs/FRAME-TV.md).
+              {resolution.width}×{resolution.height} · sRGB JPEG · sized for{' '}
+              {preset.label}.{' '}
+              {resolvedArt && resolvedArt.source !== 'upload'
+                ? 'Artist, museum, and license are embedded in the file.'
+                : ''}{' '}
+              See docs/EXPORTS.md.
             </p>
             {error && (
               <p role="alert" className="text-xs text-red-700">

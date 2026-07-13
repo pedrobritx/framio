@@ -1,0 +1,56 @@
+{
+    "offset": 0,
+    "rows": 1,
+    "found": 13793,
+    "items": [
+        {
+            "production": [
+                {
+                    "creator": "Marin, John",
+                    "creator_forename": "John",
+                    "creator_surname": "Marin",
+                    "creator_date_of_birth": "1870-01-01T00:00:00.000Z",
+                    "creator_date_of_death": "1953-01-01T00:00:00.000Z",
+                    "creator_nationality": "Amerikansk",
+                    "creator_gender": "MALE",
+                    "creator_lref": "22540_person"
+                }
+            ],
+            "production_date": [
+                {
+                    "start": "1918-01-01T00:00:00.000Z",
+                    "end": "1918-12-31T00:00:00.000Z",
+                    "period": "1918"
+                }
+            ],
+            "techniques": [
+                "Vandfarve"
+            ],
+            "object_number": "KKS2004-95",
+            "public_domain": true,
+            "image_width": 5760,
+            "image_height": 3840,
+            "image_thumbnail": "https://iip-thumb.smk.dk/iiif/jp2/6t053g530_KKS2004-95.TIF.jp2/full/!1024,/0/default.jpg",
+            "titles": [
+                {
+                    "title": "Valley Landscape",
+                    "type": "artist's title",
+                    "language": "engelsk"
+                }
+            ],
+            "artist": [
+                "John Marin"
+            ]
+        }
+    ],
+    "facets": {},
+    "facets_ranges": {},
+    "corrections": [],
+    "autocomplete": [
+        "Winter Landscape. Utterslev near Copenhagen",
+        "Valley Landscape",
+        "Life-Still (Studies for an alienated landscape)",
+        "Landscape with a Farmhouse and a Hay Barn",
+        "Evening Landscape"
+    ]
+}

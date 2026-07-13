@@ -30,7 +30,7 @@ export default function SettingsPage() {
       <h1 className="mt-2 font-editorial text-4xl md:text-5xl">Settings</h1>
 
       <section className="mt-10">
-        <h2 className="mb-1 text-xs uppercase tracking-label text-brass">Frame</h2>
+        <h2 className="mb-1 text-xs uppercase tracking-label text-brass-text">Frame</h2>
         <FrameSetting />
         <Field
           label="Frame Bridge"
@@ -40,12 +40,12 @@ export default function SettingsPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="mb-1 text-xs uppercase tracking-label text-brass">Appearance</h2>
+        <h2 className="mb-1 text-xs uppercase tracking-label text-brass-text">Appearance</h2>
         <ThemeSetting />
       </section>
 
       <section className="mt-12">
-        <h2 className="mb-1 text-xs uppercase tracking-label text-brass">About</h2>
+        <h2 className="mb-1 text-xs uppercase tracking-label text-brass-text">About</h2>
         <div className="border-t border-stone py-4">
           <p className="text-sm">Sources</p>
           <p className="mt-1 text-xs text-ink-soft">
@@ -58,7 +58,7 @@ export default function SettingsPage() {
                   href={m.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-ink transition-colors hover:text-brass"
+                  className="text-ink transition-colors hover:text-brass-text"
                 >
                   {m.short}
                 </a>
@@ -74,7 +74,7 @@ export default function SettingsPage() {
         <Field label="Version" value="0.1" />
         <Link
           href="/about"
-          className="flex items-baseline justify-between gap-6 border-t border-stone py-4 text-sm text-ink transition-colors hover:text-brass"
+          className="flex items-baseline justify-between gap-6 border-t border-stone py-4 text-sm text-ink transition-colors hover:text-brass-text"
         >
           <span>Manifesto, license &amp; credits</span>
           <span className="shrink-0 text-ink-soft">→</span>

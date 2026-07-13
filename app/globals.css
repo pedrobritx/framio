@@ -17,14 +17,26 @@
     @apply font-ui text-xs uppercase tracking-label text-ink-soft;
   }
 
-  /* Keyboard focus: a clear brass ring on every interactive element. */
+  /* Keyboard focus: a clear brass ring on every interactive element. The
+     [data-spatial-focus] attribute is set by the D-pad navigator so remote
+     users see the same ring even where :focus-visible heuristics wouldn't. */
   a:focus-visible,
   button:focus-visible,
   input:focus-visible,
-  [tabindex]:focus-visible {
+  [tabindex]:focus-visible,
+  [data-spatial-focus] {
     outline: 2px solid var(--brass);
     outline-offset: 2px;
     border-radius: 1px;
+  }
+
+  /* Give focus somewhere to breathe when scrolled into view (D-pad / keyboard). */
+  a,
+  button,
+  input,
+  select,
+  [tabindex] {
+    scroll-margin: 4rem;
   }
 
   /* Skip link — hidden until focused, then pinned to the top-left. */
@@ -45,6 +57,22 @@
   }
 }
 
+@layer components {
+  /* Overscan-safe padding for the 10-foot Watch UI: keep content clear of a
+     TV's cropped edges, and respect device safe-area insets on handhelds. */
+  .tv-safe {
+    padding: max(5vmin, env(safe-area-inset-top))
+      max(5vmin, env(safe-area-inset-right))
+      max(5vmin, env(safe-area-inset-bottom))
+      max(5vmin, env(safe-area-inset-left));
+  }
+
+  /* Watch cross-fade between stacked artwork layers. */
+  .watch-layer {
+    transition: opacity 1200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -53,5 +81,10 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Watch becomes a hard cut, not a fade. */
+  .watch-layer {
+    transition: none !important;
   }
 }

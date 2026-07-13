@@ -1,45 +1,16 @@
 import { TARGET, resolveMatColor, type StudioOptions } from '../frame';
+import { loadImage } from './loadImage';
+import { coverPlacement } from './geometry';
 
 /**
  * Browser Frame Studio engine.
  *
  * The static build has no server, so the export that once ran through Sharp
  * (see compose.ts, kept as the reference / Frame Bridge pipeline) is mirrored
- * here on a <canvas>. It composes any source image onto the Frame's native
- * 3840×2160 canvas and resolves to a JPEG Blob, ready to download.
+ * here on a <canvas>. It composes any source image onto an output canvas
+ * (the Frame's native 3840×2160 by default) and resolves to a JPEG Blob,
+ * ready to download.
  */
-
-/**
- * Route a cross-origin image through a public CORS proxy so the canvas stays
- * untainted and exportable. Some museum CDNs (Cleveland, occasionally AIC) don't
- * send `Access-Control-Allow-Origin`; the Met does, and data URLs never need it.
- */
-function proxied(src: string): string {
-  const noProto = src.replace(/^https?:\/\//, '');
-  const scheme = src.startsWith('https') ? 'ssl:' : '';
-  return `https://images.weserv.nl/?url=${encodeURIComponent(scheme + noProto)}`;
-}
-
-/** Attempt a cross-origin-readable load; fall back to the proxy on failure. */
-function loadImage(src: string): Promise<HTMLImageElement> {
-  const attempt = (url: string) =>
-    new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error('load-failed'));
-      img.src = url;
-    });
-
-  // Data URLs (uploads) are same-origin — load directly, never proxy.
-  if (src.startsWith('data:')) return attempt(src);
-
-  return attempt(src).catch(() =>
-    attempt(proxied(src)).catch(() => {
-      throw new Error('Could not load the source image.');
-    }),
-  );
-}
 
 function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
@@ -96,17 +67,15 @@ export async function composeCanvas(
 
   switch (opts.mode) {
     case 'smartCrop': {
-      // Cover the 16:9 canvas, then apply the editor's zoom and pan. With the
+      // Cover the canvas, then apply the editor's zoom and pan. With the
       // defaults (zoom 1, no offset) this is a plain centered cover crop; the
-      // maths mirrors CropStage so the export matches the preview exactly.
-      const zoom = clamp(opts.zoom ?? 1, 1, 4);
-      const scale = Math.max(W / img.width, H / img.height) * zoom;
-      const dw = img.width * scale;
-      const dh = img.height * scale;
-      const ox = dw - W;
-      const oy = dh - H;
-      const dx = (W - dw) / 2 - clamp(opts.offsetX ?? 0, -1, 1) * (ox / 2);
-      const dy = (H - dh) / 2 - clamp(opts.offsetY ?? 0, -1, 1) * (oy / 2);
+      // shared geometry mirrors CropStage so the export matches the preview
+      // exactly.
+      const { dw, dh, dx, dy } = coverPlacement(img.width, img.height, W, H, {
+        zoom: opts.zoom ?? 1,
+        x: opts.offsetX ?? 0,
+        y: opts.offsetY ?? 0,
+      });
       ctx.drawImage(img, dx, dy, dw, dh);
       break;
     }

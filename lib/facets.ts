@@ -122,14 +122,3 @@ export const MEDIUMS: string[] = [
   'Ceramics',
   'Textiles',
 ];
-
-/**
- * Museums. The MVP sources The Met's Open Access collection; the field is here so
- * Browse-by-museum is ready as more institutions come online (Phase 2).
- */
-export const MUSEUMS: { id: string; label: string; available: boolean }[] = [
-  { id: 'met', label: 'The Met', available: true },
-  { id: 'aic', label: 'Art Institute of Chicago', available: false },
-  { id: 'cma', label: 'Cleveland Museum of Art', available: false },
-  { id: 'rijks', label: 'Rijksmuseum', available: false },
-];

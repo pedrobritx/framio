@@ -1,0 +1,30 @@
+{
+  "data": {
+    "id": 130788,
+    "title": "Black Ducks, No. 2",
+    "creators": [
+      {
+        "id": 4001,
+        "description": "Frank W. Benson (American, 1862–1951)",
+        "extent": null,
+        "qualifier": null,
+        "role": "artist",
+        "biography": null,
+        "name_in_original_language": null,
+        "birth_year": "1862",
+        "death_year": "1951",
+        "use_in_caption": true,
+        "include_extent": false,
+        "weight": 1
+      }
+    ],
+    "creation_date": "1919",
+    "technique": "drypoint",
+    "department": "Prints",
+    "url": "https://clevelandart.org/art/1953.499",
+    "share_license_status": "Copyrighted",
+    "images": {},
+    "description": null,
+    "did_you_know": null
+  }
+}

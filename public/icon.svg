@@ -1,0 +1,8 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Framio">
+  <rect width="512" height="512" fill="#fbfaf7"/>
+  <!-- Gallery frame -->
+  <rect x="96" y="96" width="320" height="320" fill="none" stroke="#9a7b4f" stroke-width="14"/>
+  <rect x="128" y="128" width="256" height="256" fill="none" stroke="#e7e2d9" stroke-width="6"/>
+  <!-- Editorial F -->
+  <path d="M212 176h108v34h-70v40h60v34h-60v76h-38z" fill="#1c1b19"/>
+</svg>

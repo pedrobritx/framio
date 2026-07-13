@@ -3,10 +3,12 @@
 
 create extension if not exists "pgcrypto";
 
--- Canonical record for Met works AND user uploads (source = 'upload').
+-- Canonical record for museum works AND user uploads (source = 'upload').
+-- Sources mirror lib/types.ts ArtSource. Amended in place (never applied to a
+-- live project) when the app went multi-museum.
 create table if not exists artworks (
   id uuid primary key default gen_random_uuid(),
-  source text not null check (source in ('met', 'upload')),
+  source text not null check (source in ('met', 'aic', 'cma', 'smk', 'wiki', 'upload')),
   source_id text,
   title text not null default 'Untitled',
   artist text not null default 'Unknown artist',

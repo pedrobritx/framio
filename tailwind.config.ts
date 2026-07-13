@@ -17,6 +17,7 @@ const config: Config = {
         brass: {
           DEFAULT: 'var(--brass)',
           soft: 'var(--brass-soft)',
+          text: 'var(--brass-text)',
         },
       },
       fontFamily: {

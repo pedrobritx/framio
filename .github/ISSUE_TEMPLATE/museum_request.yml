@@ -1,0 +1,58 @@
+name: Add a museum
+description: Suggest a museum, gallery, or archive whose open-access art Framio should show
+labels: ["museum"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping open more art to the world. See
+        [docs/OPEN-ACCESS.md](../../blob/main/docs/OPEN-ACCESS.md) for what Framio
+        needs. Framio shows **only** genuinely open (public domain / CC0) works.
+  - type: input
+    id: name
+    attributes:
+      label: Institution name
+    validations:
+      required: true
+  - type: input
+    id: website
+    attributes:
+      label: Website
+    validations:
+      required: true
+  - type: input
+    id: api
+    attributes:
+      label: Open API or data URL
+      description: Link to the API docs, or to a framio.collection.json file, if any.
+  - type: dropdown
+    id: license
+    attributes:
+      label: Open-access program
+      description: Are the images public domain / CC0?
+      options:
+        - "Yes — public domain / CC0"
+        - "Partly — some works are open"
+        - "Not sure"
+    validations:
+      required: true
+  - type: dropdown
+    id: cors
+    attributes:
+      label: Is the API/CDN CORS-enabled?
+      description: Framio is a static app; it can only read APIs that send Access-Control-Allow-Origin.
+      options:
+        - "Yes"
+        - "No"
+        - "Not sure"
+  - type: checkboxes
+    id: keyless
+    attributes:
+      label: Access
+      options:
+        - label: The API is public and keyless (or I can note the key requirement below)
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?
+      description: Contact for the institution, rate limits, image sizes, etc.

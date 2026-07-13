@@ -1,6 +1,7 @@
 import type { Artwork, ArtColor, ArtSource } from './types';
 import { mapMetObject } from './met';
 import { colorDistance, fitsFrame } from './curation';
+import { applyCommunityText } from './descriptions';
 
 /**
  * Multi-museum art search — runs entirely in the browser.
@@ -137,6 +138,21 @@ function stripHtml(s?: string): string {
   return (s ?? '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * Cap museum prose at a readable length, cutting at a sentence boundary where
+ * one exists. Keeps descriptions honest paragraphs, not essays — and keeps the
+ * XMP packet they travel in (lib/studio/metadata.ts) comfortably small.
+ */
+const MAX_DESCRIPTION = 1200;
+export function clampText(s: string, max = MAX_DESCRIPTION): string {
+  const text = s.trim();
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const sentence = cut.lastIndexOf('. ');
+  if (sentence > max * 0.5) return cut.slice(0, sentence + 1);
+  return `${cut.slice(0, cut.lastIndexOf(' '))}…`;
+}
+
 async function getJson<T>(url: string, signal?: AbortSignal): Promise<T | null> {
   try {
     const res = await fetch(url, { signal });
@@ -241,7 +257,11 @@ interface AicItem {
   department_title?: string;
   /** AIC's published dominant colour. */
   color?: { h?: number; s?: number; l?: number } | null;
-  thumbnail?: { width?: number; height?: number } | null;
+  /** `alt_text` is AIC's curated visual description of the image. */
+  thumbnail?: { width?: number; height?: number; alt_text?: string | null } | null;
+  /** Long curatorial text (CC-BY per AIC's API terms; shown with credit). */
+  description?: string | null;
+  short_description?: string | null;
 }
 
 interface AicCursor {
@@ -250,7 +270,7 @@ interface AicCursor {
 }
 
 const AIC_FIELDS =
-  'id,title,artist_title,artist_display,date_display,medium_display,image_id,is_public_domain,department_title,color,thumbnail';
+  'id,title,artist_title,artist_display,date_display,medium_display,image_id,is_public_domain,department_title,color,thumbnail,description,short_description';
 
 function aicImage(imageId: string, size: number | 'full'): string {
   const region = size === 'full' ? 'full' : `${size},`;
@@ -261,7 +281,7 @@ function aicImage(imageId: string, size: number | 'full'): string {
   );
 }
 
-function mapAic(it: AicItem): Artwork | null {
+export function mapAic(it: AicItem): Artwork | null {
   if (!it.image_id) return null;
   const w = it.thumbnail?.width;
   const h = it.thumbnail?.height;
@@ -270,6 +290,7 @@ function mapAic(it: AicItem): Artwork | null {
     it.color && typeof it.color.h === 'number'
       ? { h: it.color.h, s: it.color.s ?? 0, l: it.color.l ?? 0 }
       : undefined;
+  const description = stripHtml(it.short_description || it.description || '');
   return {
     id: `aic:${it.id}`,
     source: 'aic',
@@ -289,6 +310,9 @@ function mapAic(it: AicItem): Artwork | null {
     height: h,
     aspect,
     color,
+    description: description ? clampText(description) : undefined,
+    altText: it.thumbnail?.alt_text?.trim() || undefined,
+    descriptionSource: description ? 'museum' : undefined,
   };
 }
 
@@ -343,6 +367,8 @@ interface CmaItem {
   url?: string;
   share_license_status?: string;
   images?: { web?: CmaImage; print?: CmaImage; full?: CmaImage };
+  description?: string | null;
+  did_you_know?: string | null;
 }
 
 interface CmaCursor {
@@ -351,14 +377,18 @@ interface CmaCursor {
 }
 
 const CMA_FIELDS =
-  'id,title,creators,creation_date,technique,department,url,share_license_status,images';
+  'id,title,creators,creation_date,technique,department,url,share_license_status,images,description,did_you_know';
 
-function mapCma(it: CmaItem): Artwork | null {
+export function mapCma(it: CmaItem): Artwork | null {
   const thumb = it.images?.web?.url;
   // `print` is a high-res JPEG; `full` is a huge multi-hundred-MB TIFF — avoid it.
   const full = it.images?.print?.url || thumb;
   if (!thumb || !full) return null;
   const cc0 = (it.share_license_status || '').toUpperCase() === 'CC0';
+  // Cleveland's wall text, with its "did you know" aside as a second paragraph.
+  const description = [stripHtml(it.description ?? ''), stripHtml(it.did_you_know ?? '')]
+    .filter(Boolean)
+    .join('\n\n');
   return {
     id: `cma:${it.id}`,
     source: 'cma',
@@ -374,6 +404,8 @@ function mapCma(it: CmaItem): Artwork | null {
     imageUrl: full,
     thumbUrl: thumb,
     objectUrl: it.url || undefined,
+    description: description ? clampText(description) : undefined,
+    descriptionSource: description ? 'museum' : undefined,
   };
 }
 
@@ -428,6 +460,9 @@ interface SmkItem {
   image_height?: number;
   frontend_url?: string;
   public_domain?: boolean;
+  /** Free-prose notes; often Danish. Shown with an SMK credit. */
+  content_description?: string[] | null;
+  labels?: { text?: string }[] | null;
 }
 
 interface SmkCursor {
@@ -435,21 +470,30 @@ interface SmkCursor {
   found: number;
 }
 
+/**
+ * SMK's search index no longer accepts `frontend_url` in `fields` (and `lang`
+ * breaks `production_date` / `frontend_url` suffixing), so the canonical page
+ * URL is built from the object number instead and `lang` is never sent.
+ */
 const SMK_FIELDS =
-  'object_number,titles,artist,production,production_date,techniques,image_thumbnail,image_width,image_height,frontend_url,public_domain';
+  'object_number,titles,artist,production,production_date,techniques,image_thumbnail,image_width,image_height,public_domain,content_description,labels';
 
 /** SMK thumbnails are IIIF (`/full/!1024,/…`); swap the size segment. */
 function smkImage(thumb: string, size: number): string {
   return thumb.replace(/\/full\/!?\d+,?\//, `/full/!${size},/`);
 }
 
-function mapSmk(it: SmkItem): Artwork | null {
+export function mapSmk(it: SmkItem): Artwork | null {
   const thumb = it.image_thumbnail;
   if (!thumb || !it.object_number) return null;
   const w = it.image_width;
   const h = it.image_height;
   const aspect = w && h ? w / h : undefined;
   const date = it.production_date?.[0];
+  const description =
+    it.content_description?.find((s) => s?.trim())?.trim() ||
+    it.labels?.find((l) => l.text?.trim())?.text?.trim() ||
+    '';
   return {
     id: `smk:${it.object_number}`,
     source: 'smk',
@@ -466,10 +510,14 @@ function mapSmk(it: SmkItem): Artwork | null {
     isPublicDomain: Boolean(it.public_domain),
     imageUrl: smkImage(thumb, 1686),
     thumbUrl: smkImage(thumb, 400),
-    objectUrl: it.frontend_url || undefined,
+    objectUrl:
+      it.frontend_url ||
+      `https://open.smk.dk/artwork/image/${encodeURIComponent(it.object_number)}`,
     width: w,
     height: h,
     aspect,
+    description: description ? clampText(description) : undefined,
+    descriptionSource: description ? 'museum' : undefined,
   };
 }
 
@@ -487,7 +535,6 @@ async function smkPage(
   p.set('offset', String(offset));
   p.set('rows', String(PER_SOURCE));
   p.set('fields', SMK_FIELDS);
-  p.set('lang', 'en');
   const data = await getJson<{ found?: number; items?: SmkItem[] }>(
     `${SMK_BASE}/search/?${p.toString()}`,
     signal,
@@ -542,7 +589,7 @@ function wikiFilePath(fileTitle: string, width: number): string {
   )}?width=${width}`;
 }
 
-function mapWiki(p: WikiPage): Artwork | null {
+export function mapWiki(p: WikiPage): Artwork | null {
   const ii = p.imageinfo?.[0];
   if (!ii?.thumburl || !p.title) return null;
   const em = ii.extmetadata ?? {};
@@ -555,6 +602,7 @@ function mapWiki(p: WikiPage): Artwork | null {
     fileTitle.replace(/^File:/, '').replace(/\.[a-z0-9]+$/i, '').trim() ||
     'Untitled';
   const license = stripHtml(em.LicenseShortName?.value);
+  const description = stripHtml(em.ImageDescription?.value);
   return {
     id: `wiki:${fileTitle}`,
     source: 'wiki',
@@ -575,6 +623,8 @@ function mapWiki(p: WikiPage): Artwork | null {
     width: w,
     height: h,
     aspect,
+    description: description ? clampText(description) : undefined,
+    descriptionSource: description ? 'museum' : undefined,
   };
 }
 
@@ -740,9 +790,11 @@ async function buildColorPool(
     .map(mapAic)
     .filter((a): a is Artwork => a !== null && a.color !== undefined);
   const filtered = query.aspectFit ? pool.filter((a) => fitsFrame(a.aspect)) : pool;
-  return filtered.sort(
-    (a, b) => colorDistance(a.color!, target) - colorDistance(b.color!, target),
-  );
+  return filtered
+    .sort(
+      (a, b) => colorDistance(a.color!, target) - colorDistance(b.color!, target),
+    )
+    .map(applyCommunityText);
 }
 
 /* ----------------------------------------------------------------- combined */
@@ -807,7 +859,7 @@ export async function searchArtworks(
   if (query.aspectFit) {
     artworks = artworks.filter((a) => a.aspect == null || fitsFrame(a.aspect));
   }
-  return { artworks, cursor: next, hasMore };
+  return { artworks: artworks.map(applyCommunityText), cursor: next, hasMore };
 }
 
 /* --------------------------------------------------- single artwork by id */
@@ -821,7 +873,9 @@ export async function getArtwork(
   const source = (sep === -1 ? '' : compositeId.slice(0, sep)) as MuseumSource;
   const sourceId = sep === -1 ? compositeId : compositeId.slice(sep + 1);
   const adapter = ADAPTER_BY_ID.get(source);
-  if (adapter) return adapter.getById(sourceId, signal);
-  // Bare id (no source prefix) → the Met, preserving older deep links.
-  return metResolve(compositeId, signal);
+  const art = adapter
+    ? await adapter.getById(sourceId, signal)
+    : // Bare id (no source prefix) → the Met, preserving older deep links.
+      await metResolve(compositeId, signal);
+  return art ? applyCommunityText(art) : null;
 }

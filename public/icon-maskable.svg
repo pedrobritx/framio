@@ -1,0 +1,7 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Framio">
+  <!-- Full-bleed paper so the maskable safe zone (inner 80%) is always covered -->
+  <rect width="512" height="512" fill="#fbfaf7"/>
+  <!-- Frame + F kept within the ~60% center safe zone -->
+  <rect x="150" y="150" width="212" height="212" fill="none" stroke="#9a7b4f" stroke-width="12"/>
+  <path d="M226 196h84v28h-54v30h46v28h-46v54h-30z" fill="#1c1b19"/>
+</svg>

@@ -1,14 +1,18 @@
 {
   "name": "framio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Curated art for your Samsung Frame TV — your personal museum.",
+  "description": "Your personal museum — open-access art for every screen.",
   "scripts": {
     "dev": "next dev",
+    "icons": "node scripts/icons.mjs",
+    "prebuild": "node scripts/icons.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
@@ -18,14 +22,21 @@
     "sharp": "^0.33.5"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.3",
     "autoprefixer": "^10.4.0",
+    "axe-core": "^4.12.1",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.5.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "happy-dom": "^20.10.6",
     "postcss": "^8.4.0",
     "tailwindcss": "^3.4.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.10",
+    "vitest-axe": "^0.1.0"
   }
 }

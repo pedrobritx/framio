@@ -156,7 +156,7 @@ export default function Uploader() {
               <div className="flex items-center gap-3 text-xs">
                 <Link
                   href={studioHref({ id: art.id, title: art.title })}
-                  className="text-brass hover:underline"
+                  className="text-brass-text hover:underline"
                 >
                   Crop for Frame
                 </Link>
