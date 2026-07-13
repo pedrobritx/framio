@@ -141,7 +141,7 @@ function CollectionDetail({
       {collection.items.length === 0 ? (
         <p className="text-ink-soft">
           Empty for now. Favorite works while browsing and add them here — then frame each for
-          your TV.
+          any screen.
         </p>
       ) : (
         <>
@@ -163,7 +163,7 @@ function CollectionDetail({
               <div className="flex items-center gap-3 text-xs">
                 {art.isPublicDomain ? (
                   <Link href={frameHref(art)} className="text-brass-text hover:underline">
-                    Frame for TV
+                    Frame
                   </Link>
                 ) : (
                   <span className="text-ink-soft">Discovery only</span>
@@ -201,7 +201,7 @@ export default function CollectionsPage() {
             <h1 className="font-editorial text-4xl md:text-5xl">Your exhibitions</h1>
             <p className="max-w-xl text-ink-soft">
               Group works into rotating sets — each collection is the queue of art you&apos;ll
-              crop in Frame Studio and send to your Frame TV.
+              crop in Frame Studio and export to any screen.
             </p>
           </header>
 

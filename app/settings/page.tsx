@@ -7,18 +7,38 @@ function Field({
   label,
   value,
   note,
+  learnMoreHref,
 }: {
   label: string;
   value: string;
-  note?: string;
+  note?: React.ReactNode;
+  /** Optional "Learn more" link appended after the note. */
+  learnMoreHref?: string;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-6 border-t border-stone py-4">
+    <div className="flex flex-col gap-1 border-t border-stone py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
       <div>
         <p className="text-sm">{label}</p>
-        {note && <p className="mt-1 text-xs text-ink-soft">{note}</p>}
+        {note && (
+          <p className="mt-1 text-xs text-ink-soft">
+            {note}
+            {learnMoreHref && (
+              <>
+                {' '}
+                <a
+                  href={learnMoreHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-ink underline decoration-stone underline-offset-2 transition-colors hover:text-brass-text"
+                >
+                  Learn more →
+                </a>
+              </>
+            )}
+          </p>
+        )}
       </div>
-      <p className="shrink-0 text-sm text-ink-soft">{value}</p>
+      <p className="text-sm text-ink-soft sm:shrink-0">{value}</p>
     </div>
   );
 }
@@ -34,8 +54,9 @@ export default function SettingsPage() {
         <FrameSetting />
         <Field
           label="Frame Bridge"
-          value="Phase 2"
-          note="Auto-push to Art Mode over your home network."
+          value="Planned"
+          note="A small app for your home network that would auto-push your collection to the Frame's Art Mode, so nothing needs to be loaded by hand. Not built yet."
+          learnMoreHref="https://github.com/pedrobritx/framio/blob/main/docs/FRAME-TV.md"
         />
       </section>
 
@@ -71,7 +92,7 @@ export default function SettingsPage() {
             ))}
           </p>
         </div>
-        <Field label="Version" value="0.1" />
+        <Field label="Version" value="0.2" />
         <Link
           href="/about"
           className="flex items-baseline justify-between gap-6 border-t border-stone py-4 text-sm text-ink transition-colors hover:text-brass-text"

@@ -212,8 +212,10 @@ export function SettingsIcon({ className }: IconProps) {
       strokeLinejoin="round"
       aria-hidden
     >
-      <circle cx={12} cy={12} r={3} />
-      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" />
+      {/* Three sliders — a silhouette unambiguously distinct from the sun icon. */}
+      <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+      <circle cx={13.5} cy={7} r={2} />
+      <circle cx={8.5} cy={17} r={2} />
     </svg>
   );
 }

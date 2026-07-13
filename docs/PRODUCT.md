@@ -1,18 +1,19 @@
 # Framio — Product Definition
 
-> **Your personal museum.** A digital art curator that turns a Samsung Frame TV into a living gallery.
+> **A living museum for every screen.** Open-access art from the world's museums, framed for your TV,
+> phone, tablet, or desktop.
 
-**Version:** 0.1 · **Status:** Concept + MVP scaffold · **Stance:** Personal-first, built to grow.
+**Version:** 0.2 · **Status:** Living-museum overhaul, built to grow.
 
 ---
 
 ## 1. Problem
 
-Samsung Frame TV owners want to display fine art, but the path there is tedious and lossy:
+People who want to live with fine art on their screens hit the same wall:
 
 - Finding high-quality, *legally usable* public-domain artwork is hard.
 - Images must be downloaded by hand, one at a time.
-- Artworks rarely fit a 16:9 screen and get awkwardly cropped.
+- Artworks rarely fit a given screen and get awkwardly cropped.
 - Quality degrades through manual resizing and re-compression.
 - There's no good way to organize works into rotating, themed sets.
 
@@ -23,14 +24,14 @@ Existing tools focus on *file management*. None of them feel like **discovery an
 > Transform digital displays into living museums.
 
 Framio should feel like **Apple Music for art** — you browse artists, movements, and museums the way
-you browse albums, build "exhibitions" the way you build playlists, and your TV changes through the
-day, the seasons, and your mood. The app itself nearly disappears; **the artwork is the interface.**
+you browse albums, build "exhibitions" the way you build playlists, and your screens change through
+the day, the seasons, and your mood. The app itself nearly disappears; **the artwork is the interface.**
 
 ## 3. Target users
 
 **Primary**
 
-- Samsung Frame TV owners
+- Anyone who wants open-access art on a screen — TV, phone, tablet, or desktop
 - Art, museum, and interior-design enthusiasts
 - Home-automation tinkerers
 

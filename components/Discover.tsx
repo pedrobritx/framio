@@ -10,6 +10,7 @@ import { artAlt } from '@/lib/a11y';
 import {
   ARTISTS,
   CULTURES,
+  DEFAULT_MEDIUM,
   MEDIUMS,
   PERIODS,
   SCHOOLS,
@@ -54,7 +55,11 @@ const INITIAL: State = {
   topic: null,
   culture: null,
   periodIndex: null,
-  medium: null,
+  // Paintings first — the medium most people picture when they think "art."
+  // Treated like `sources`/`publicDomainOnly` below: a real default, but not
+  // counted as an active filter, so a fresh visit still opens on the resting
+  // gallery instead of jumping straight into "searching" mode.
+  medium: DEFAULT_MEDIUM,
   mood: null,
   color: null,
   aspectFit: false,
@@ -92,7 +97,9 @@ function countFilters(s: State): number {
     (s.topic ? 1 : 0) +
     (s.culture ? 1 : 0) +
     (s.periodIndex != null ? 1 : 0) +
-    (s.medium ? 1 : 0) +
+    // The default medium doesn't count as an active filter — same treatment
+    // as `sources`/`publicDomainOnly` below, which also default to non-empty.
+    (s.medium && s.medium !== DEFAULT_MEDIUM ? 1 : 0) +
     (s.mood ? 1 : 0) +
     (s.color ? 1 : 0) +
     (s.aspectFit ? 1 : 0)
@@ -110,7 +117,7 @@ function activeFilters(s: State): { key: keyof State; label: string }[] {
   if (s.culture) out.push({ key: 'culture', label: s.culture });
   if (s.periodIndex != null)
     out.push({ key: 'periodIndex', label: PERIODS[s.periodIndex].label });
-  if (s.medium) out.push({ key: 'medium', label: s.medium });
+  if (s.medium && s.medium !== DEFAULT_MEDIUM) out.push({ key: 'medium', label: s.medium });
   if (s.aspectFit) out.push({ key: 'aspectFit', label: 'Fits your Frame' });
   return out;
 }

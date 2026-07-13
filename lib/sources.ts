@@ -130,6 +130,22 @@ function keyword(query: SearchQuery): string {
     .trim();
 }
 
+/**
+ * Same as `keyword()`, minus the medium. SMK's `keys` search behaves like a
+ * strict match over Danish-language fields — folding in an English medium
+ * word like "Paintings" doesn't just fail to help, it silently zeroes out
+ * otherwise-good results the moment it's combined with anything else
+ * (verified live: "Monet" → 51 results, "Monet Paintings" → 0). Every other
+ * adapter tolerates the medium keyword fine, so only SMK needs this.
+ */
+function keywordWithoutMedium(query: SearchQuery): string {
+  return [query.q, query.artistOrCulture]
+    .map((s) => s?.trim())
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+}
+
 function firstLine(s?: string): string {
   return (s ?? '').split('\n')[0]?.trim() ?? '';
 }
@@ -529,7 +545,7 @@ async function smkPage(
   const c = cursor as SmkCursor | undefined;
   const offset = c ? c.offset + PER_SOURCE : 0;
   const p = new URLSearchParams();
-  p.set('keys', keyword(query) || '*');
+  p.set('keys', keywordWithoutMedium(query) || '*');
   // SMK carries plenty of non-open works; the Frame use-case only wants CC0/PD.
   p.set('filters', '[has_image:true],[public_domain:true]');
   p.set('offset', String(offset));
