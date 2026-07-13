@@ -1,0 +1,69 @@
+{
+  "$comment": "Framio's open descriptions dataset. Every entry is dedicated to the public domain under CC0 1.0 by its contributor. These are visual descriptions written for access — what a person who cannot see the image would want to know — not curatorial essays. See docs/DESCRIPTIONS.md for how to contribute.",
+  "met:436535": {
+    "altText": "A windblown wheat field under a turbulent sky; two dark green cypresses rise on the right like flames, with blue mountains behind.",
+    "description": "A summer landscape painted in thick, restless strokes. Golden wheat fills the foreground, bending as if in wind. On the right, two tall cypress trees rise in near-black greens, their forms twisting upward like dark flames. Behind them, olive trees ripple in silvery green before a range of blue mountains. The upper half is sky in motion: white and blue clouds curl and spiral, painted in the same heavy, rhythmic brushwork as the land, so the whole scene seems to move at once.",
+    "contributor": "Framio maintainers",
+    "lang": "en"
+  },
+  "met:436532": {
+    "altText": "Self-portrait of Van Gogh in a yellow straw hat, painted in short, radiating strokes of yellow, blue, and green.",
+    "description": "A head-and-shoulders self-portrait. The artist faces slightly left, red-bearded, with a pale, watchful face and green-tinged shadows. He wears a yellow straw hat and a rough smock. Every surface is built from short, separate strokes of colour — yellows and oranges in the hat, blues and greens vibrating around the head — so the paint itself seems to radiate outward from his steady gaze.",
+    "contributor": "Framio maintainers",
+    "lang": "en"
+  },
+  "met:45434": {
+    "altText": "A towering wave with claw-like foam curls over small boats, with Mount Fuji tiny on the horizon; Japanese woodblock print in blues and cream.",
+    "description": "A Japanese woodblock print. An enormous deep-blue wave rears up on the left and curls over the centre of the image, its crest breaking into fingers of white foam that hang like claws. Beneath it, three long, low boats ride the swell, each crowded with rowers bent flat over their oars. Far in the distance, framed in the hollow of the wave, sits the small, snow-capped cone of Mount Fuji. The sky is a muted cream and grey, so the great wave reads as the true mountain of the picture.",
+    "contributor": "Framio maintainers",
+    "lang": "en"
+  },
+  "met:437881": {
+    "altText": "A woman in a blue-and-yellow dress and white linen hood stands at a sunlit window, one hand on the window frame, one on a brass water pitcher.",
+    "description": "A quiet interior lit from a leaded-glass window on the left. A young woman stands at its centre in a deep blue bodice with yellow sleeves and a crisp white linen hood that falls over her shoulders. With one hand she opens the window; the other rests on a gleaming brass pitcher standing in a brass basin on a table draped with a red-and-blue Turkish carpet. Cool daylight washes the whitewashed wall behind her, catching the pearl sheen of her hood and the polished metal. Nothing happens — and that stillness is the subject.",
+    "contributor": "Framio maintainers",
+    "lang": "en"
+  },
+  "met:435809": {
+    "altText": "Peasants harvest golden wheat under a hazy summer sky; a group eats and naps beneath a pear tree in the right foreground.",
+    "description": "A wide summer landscape seen from a low hill. Fields of ripe wheat, painted a dense gold, cover most of the scene; men scythe standing paths through the grain while women bind and carry sheaves. In the right foreground a small group of harvesters rests beneath a pear tree — eating bread and porridge from bowls, drinking from jugs, one man sprawled flat asleep. Beyond the fields, the land falls away to a hazy valley with a church, a pond, and distant ships, all dissolving into a pale green-grey heat.",
+    "contributor": "Framio maintainers",
+    "lang": "en"
+  },
+  "met:438817": {
+    "altText": "Young ballerinas in white tutus fill a Paris rehearsal room as an elderly ballet master with a tall staff conducts class.",
+    "description": "A rehearsal room in the old Paris Opéra. Two dozen young dancers in white tutus with coloured sashes fill the space — stretching, fidgeting, adjusting earrings and ribbons, only half attending. At the centre-right stands the elderly ballet master in a grey suit, leaning on a tall wooden staff, watching one dancer perform for him. The floor takes up much of the picture, its floorboards rushing back in steep perspective, and a marble pilaster and mirror behind the group reflect a slice of window and sky.",
+    "contributor": "Framio maintainers",
+    "lang": "en"
+  },
+  "met:437397": {
+    "altText": "Rembrandt at fifty-four, in a brown smock and white painter's cap, his lined face lit against deep shadow.",
+    "description": "A self-portrait in late middle age, painted mostly in browns and blacks. The artist emerges from a dark background, lit from the upper left. His face is heavy and deeply lined, with pouched eyes that look straight out — appraising, unsentimental. He wears a plain brown working smock and a soft white cap. The paint on the face is thick and worked, almost sculpted, while everything else stays in shadow, so all the picture's attention gathers in the tired, steady gaze.",
+    "contributor": "Framio maintainers",
+    "lang": "en"
+  },
+  "met:436105": {
+    "altText": "Socrates, seated upright on a prison bed, reaches for a cup of hemlock while gesturing upward; grieving followers surround him.",
+    "description": "A large neoclassical scene in a stone prison cell. At the centre, the elderly Socrates sits upright on a bed draped in white, bare-chested and vigorous, one finger pointed to the sky as he continues his argument. Without looking, he reaches toward a cup of poison held out by a young man in red who turns his face away in anguish. Around the bed, his followers grieve — clutching their heads, gripping his leg — while at the foot of the bed an old man in grey (Plato) sits turned away, eyes closed. A dim corridor on the left leads up stone steps, where his family departs.",
+    "contributor": "Framio maintainers",
+    "lang": "en"
+  },
+  "met:436965": {
+    "altText": "A woman in white sits on a lawn beneath a tree with a child at her side, while a man tends flowers behind them; loose, sunlit brushwork.",
+    "description": "A sunlit garden scene painted quickly, outdoors. Camille Monet, in a white summer dress with a fan in her lap, reclines on the grass beneath a tree, leaning on one arm; her young son Jean sprawls against her side. Behind them, Claude Monet bends over his flower bed with a watering can, in shirt sleeves and a round hat. A rooster and two hens peck at the lawn in the left foreground. The whole picture is built from loose, visible strokes — a painting of one painter's family made in another painter's garden.",
+    "contributor": "Framio maintainers",
+    "lang": "en"
+  },
+  "met:435882": {
+    "altText": "Red-and-green apples scattered across a white cloth beside a pot of primroses, on a table seen from slightly above.",
+    "description": "A still life seen from slightly above. A dozen apples — reds, greens, and yellows in every mixture — sit scattered and grouped across a heavy white cloth whose folds rise like hills. Behind them on the left stands a clay pot of primroses with broad, veined green leaves and small pale-yellow flowers. The table edge cuts across the lower right, and the background stays a flat grey-green, so the whole drama is in the weight of the fruit and the folds of the cloth.",
+    "contributor": "Framio maintainers",
+    "lang": "en"
+  },
+  "met:436947": {
+    "altText": "A man in a white shirt and straw boater sits at the tiller of a sailboat, a woman in a veiled hat reclining beside him, water filling the frame.",
+    "description": "Two figures in a small sailboat, cropped close as if by a camera. A man in a white shirt, cream trousers, and a flat straw boater sits at the stern, one arm on the tiller, looking directly out of the picture. Beside him a woman in a grey dress and a veiled hat reclines against the gunwale, her face half-turned. There is no horizon: the pale blue-green water of the Seine fills the entire background, tipping the boat forward into the viewer's space.",
+    "contributor": "Framio maintainers",
+    "lang": "en"
+  }
+}

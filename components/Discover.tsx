@@ -6,6 +6,7 @@ import ArtworkCard from '@/components/ArtworkCard';
 import ArtImage from '@/components/ArtImage';
 import { SearchIcon } from '@/components/icons';
 import { artworkHref } from '@/lib/links';
+import { artAlt } from '@/lib/a11y';
 import {
   ARTISTS,
   CULTURES,
@@ -626,7 +627,7 @@ export default function Discover({
                 <div className="relative aspect-[16/9] overflow-hidden border border-stone bg-ivory">
                   <ArtImage
                     src={hero.imageUrl}
-                    alt={`${hero.title} by ${hero.artist}`}
+                    alt={artAlt(hero)}
                     label={hero.title}
                     loading="eager"
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-gallery group-hover:scale-[1.03]"

@@ -4,6 +4,7 @@ import ArtImage from '@/components/ArtImage';
 import { artworkHref } from '@/lib/links';
 import { COLORS, EXHIBITIONS, MOODS } from '@/lib/curation';
 import { ARTISTS } from '@/lib/facets';
+import { artAlt } from '@/lib/a11y';
 import type { Artwork } from '@/lib/types';
 import { SearchIcon } from '@/components/icons';
 
@@ -77,7 +78,7 @@ export default function Explore({
             <div className="relative aspect-[16/9] overflow-hidden border border-stone bg-ivory">
               <ArtImage
                 src={hero.imageUrl}
-                alt={`${hero.title} by ${hero.artist}`}
+                alt={artAlt(hero)}
                 label={hero.title}
                 loading="eager"
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-gallery group-hover:scale-[1.03]"

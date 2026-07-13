@@ -1,4 +1,5 @@
 import { getFeatured } from './met';
+import { applyCommunityText } from './descriptions';
 import type { Artwork } from './types';
 
 /**
@@ -38,7 +39,7 @@ export async function getGallery(): Promise<Artwork[]> {
     for (const art of group) {
       if (art.imageUrl && !seen.has(art.sourceId)) {
         seen.add(art.sourceId);
-        all.push(art);
+        all.push(applyCommunityText(art));
       }
     }
   }

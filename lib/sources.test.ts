@@ -43,6 +43,14 @@ describe('mapAic', () => {
   it('returns null without an image id', () => {
     expect(mapAic({ ...(aicFixture.data as AicItem), image_id: null })).toBeNull();
   });
+
+  it("maps AIC's curated alt text and short description", () => {
+    expect(art.altText).toBe(
+      'Painting of bedroom, blue walls, green window, tan bed, red bedding.',
+    );
+    expect(art.description).toContain('Van Gogh moved into his own home in Arles');
+    expect(art.descriptionSource).toBe('museum');
+  });
 });
 
 describe('mapCma', () => {
@@ -70,6 +78,13 @@ describe('mapCma', () => {
 
   it('returns null for works without web images (discovery-only records)', () => {
     expect(mapCma(cmaCopyrighted.data as CmaItem)).toBeNull();
+  });
+
+  it("maps Cleveland's description with did-you-know as a second paragraph", () => {
+    expect(art.description).toContain("Monet's first wife, Camille");
+    expect(art.description).toContain('\n\n');
+    expect(art.description).toContain('red cape');
+    expect(art.descriptionSource).toBe('museum');
   });
 });
 

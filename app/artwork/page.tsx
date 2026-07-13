@@ -10,7 +10,11 @@ import { getArtwork } from '@/lib/sources';
 import { getUpload } from '@/lib/store';
 import { studioHref } from '@/lib/links';
 import { fitsFrame } from '@/lib/curation';
+import { artAlt } from '@/lib/a11y';
 import type { Artwork } from '@/lib/types';
+
+const DESCRIBE_URL =
+  'https://github.com/pedrobritx/framio/issues/new?template=artwork_description.yml';
 
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
@@ -107,7 +111,7 @@ function ArtworkInner() {
         <div className="relative aspect-[4/3] w-full overflow-hidden border border-stone bg-ivory md:aspect-auto md:min-h-[70vh]">
           <ArtImage
             src={art.imageUrl}
-            alt={`${art.title} by ${art.artist}`}
+            alt={artAlt(art)}
             label={art.title}
             loading="eager"
             className="absolute inset-0 h-full w-full object-contain"
@@ -148,6 +152,50 @@ function ArtworkInner() {
               }
             />
           </dl>
+
+          {(art.description || art.source !== 'upload') && (
+            <section aria-labelledby="about-work" className="space-y-3">
+              <h2
+                id="about-work"
+                className="text-xs uppercase tracking-label text-ink-soft"
+              >
+                About this work
+              </h2>
+              {art.description ? (
+                <>
+                  <div className="space-y-3 text-sm leading-relaxed text-ink">
+                    {art.description.split('\n\n').map((para, i) => (
+                      <p key={i}>{para}</p>
+                    ))}
+                  </div>
+                  <p className="text-xs text-ink-soft">
+                    Description ·{' '}
+                    {art.descriptionSource === 'community'
+                      ? 'community-contributed, CC0'
+                      : art.museum}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm leading-relaxed text-ink-soft">
+                  No description yet. Framio&apos;s descriptions are open source —
+                  anyone can write one so this work can be experienced without
+                  seeing it.
+                </p>
+              )}
+              {art.source !== 'upload' && (
+                <a
+                  href={DESCRIBE_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-block text-xs text-ink underline decoration-stone underline-offset-4 transition-colors hover:decoration-current"
+                >
+                  {art.description
+                    ? 'Improve this description'
+                    : 'Write a description'}
+                </a>
+              )}
+            </section>
+          )}
 
           <ArtworkDetailActions art={art} />
 

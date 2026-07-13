@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Artwork } from '@/lib/types';
 import { artworkHref } from '@/lib/links';
 import { fitsFrame } from '@/lib/curation';
+import { artAlt } from '@/lib/a11y';
 import ArtworkActions from './ArtworkActions';
 import ArtImage from './ArtImage';
 import { SOURCES } from '@/lib/sources';
@@ -18,7 +19,7 @@ export default function ArtworkCard({ art }: { art: Artwork }) {
         <div className="relative aspect-[4/5] overflow-hidden border border-stone bg-ivory">
           <ArtImage
             src={art.thumbUrl}
-            alt={art.title}
+            alt={artAlt(art)}
             label={art.title}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-gallery group-hover:scale-[1.04]"
           />
