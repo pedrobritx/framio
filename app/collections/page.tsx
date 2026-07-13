@@ -82,7 +82,10 @@ function CollectionDetail({
               className="flex gap-2"
             >
               <input
-                autoFocus
+                // Focus moves into the field the user just asked to edit —
+                // set via ref so it never fires as a page-load autofocus.
+                ref={(el) => el?.focus()}
+                aria-label="Collection name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="border border-stone bg-paper px-3 py-2 font-editorial text-2xl outline-none focus:border-brass"

@@ -261,7 +261,7 @@ function aicImage(imageId: string, size: number | 'full'): string {
   );
 }
 
-function mapAic(it: AicItem): Artwork | null {
+export function mapAic(it: AicItem): Artwork | null {
   if (!it.image_id) return null;
   const w = it.thumbnail?.width;
   const h = it.thumbnail?.height;
@@ -353,7 +353,7 @@ interface CmaCursor {
 const CMA_FIELDS =
   'id,title,creators,creation_date,technique,department,url,share_license_status,images';
 
-function mapCma(it: CmaItem): Artwork | null {
+export function mapCma(it: CmaItem): Artwork | null {
   const thumb = it.images?.web?.url;
   // `print` is a high-res JPEG; `full` is a huge multi-hundred-MB TIFF — avoid it.
   const full = it.images?.print?.url || thumb;
@@ -443,7 +443,7 @@ function smkImage(thumb: string, size: number): string {
   return thumb.replace(/\/full\/!?\d+,?\//, `/full/!${size},/`);
 }
 
-function mapSmk(it: SmkItem): Artwork | null {
+export function mapSmk(it: SmkItem): Artwork | null {
   const thumb = it.image_thumbnail;
   if (!thumb || !it.object_number) return null;
   const w = it.image_width;
@@ -542,7 +542,7 @@ function wikiFilePath(fileTitle: string, width: number): string {
   )}?width=${width}`;
 }
 
-function mapWiki(p: WikiPage): Artwork | null {
+export function mapWiki(p: WikiPage): Artwork | null {
   const ii = p.imageinfo?.[0];
   if (!ii?.thumburl || !p.title) return null;
   const em = ii.extmetadata ?? {};
