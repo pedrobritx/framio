@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest an idea for Framio
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: What are you trying to do that Framio doesn't let you do well?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: What would you like Framio to do?
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: Which experience is this for?
+      multiple: true
+      options:
+        - Desktop
+        - Phone
+        - Tablet
+        - TV / Watch mode
+        - Accessibility
+        - Exports
+        - Discovery / search
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

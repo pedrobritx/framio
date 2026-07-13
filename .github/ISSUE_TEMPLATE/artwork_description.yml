@@ -1,0 +1,51 @@
+name: Describe an artwork
+description: Contribute an open, CC0 visual description so a work can be experienced without being seen
+labels: ["description"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for making art accessible. See
+        [docs/DESCRIPTIONS.md](../../blob/main/docs/DESCRIPTIONS.md) for what makes a
+        good visual description. A maintainer will add your entry to
+        `data/descriptions.json`.
+  - type: input
+    id: id
+    attributes:
+      label: Artwork id
+      description: The composite id from the artwork page URL, e.g. met:436535
+      placeholder: "met:436535"
+    validations:
+      required: true
+  - type: input
+    id: alt
+    attributes:
+      label: Alt text
+      description: One or two sentences — what the image shows, for a stream of other content.
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Full description
+      description: A fuller visual walkthrough (up to ~1200 characters) — written to be listened to.
+  - type: input
+    id: lang
+    attributes:
+      label: Language
+      description: BCP-47 tag (en, pt-BR, da, …)
+      value: en
+    validations:
+      required: true
+  - type: input
+    id: contributor
+    attributes:
+      label: Credit
+      description: Your name or handle, to be listed with the entry.
+  - type: checkboxes
+    id: cc0
+    attributes:
+      label: License
+      options:
+        - label: I dedicate this description to the public domain under CC0 1.0.
+          required: true
