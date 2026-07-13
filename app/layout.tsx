@@ -22,10 +22,21 @@ const cormorant = Cormorant_Garamond({
   display: 'swap',
 });
 
+const basePath = process.env.PAGES_BASE_PATH ?? '';
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://pedrobritx.github.io/framio/'),
   title: 'Framio — Your personal museum',
   description: "Open-access art from the world's museums, framed for any screen.",
+  applicationName: 'Framio',
+  appleWebApp: { capable: true, title: 'Framio', statusBarStyle: 'default' },
+  icons: {
+    icon: [
+      { url: `${basePath}/icon.svg`, type: 'image/svg+xml' },
+      { url: `${basePath}/icons/icon-192.png`, sizes: '192x192', type: 'image/png' },
+    ],
+    apple: `${basePath}/icons/apple-touch-icon.png`,
+  },
   openGraph: {
     title: 'Framio — Your personal museum',
     description:

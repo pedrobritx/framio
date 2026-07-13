@@ -5,6 +5,8 @@
   "description": "Your personal museum — open-access art for every screen.",
   "scripts": {
     "dev": "next dev",
+    "icons": "node scripts/icons.mjs",
+    "prebuild": "node scripts/icons.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
