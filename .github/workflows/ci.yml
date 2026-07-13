@@ -1,12 +1,10 @@
 name: CI
 
-# `main` is listed ahead of the default-branch flip; remove the claude branch
-# once the repository's default branch is main.
 on:
   push:
     branches: ['**']
   pull_request:
-    branches: [claude/youthful-hopper-afl6vi, main]
+    branches: [main]
 
 # Cancel superseded runs on the same ref to save minutes.
 concurrency:

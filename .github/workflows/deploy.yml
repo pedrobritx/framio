@@ -1,11 +1,9 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Publish on every push to the deploy branch. `main` is listed ahead of the
-  # default-branch flip; once the repo's default is main, drop the claude/ one.
-  # main not existing yet simply means it never triggers — nothing breaks.
+  # Publish on every push to the default branch.
   push:
-    branches: [claude/youthful-hopper-afl6vi, main]
+    branches: [main]
   # Allow manual runs from the Actions tab.
   workflow_dispatch:
   # Rebuild daily so "Artwork of the Day" and the curated set stay fresh.
