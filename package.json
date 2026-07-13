@@ -1,14 +1,16 @@
 {
   "name": "framio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Curated art for your Samsung Frame TV — your personal museum.",
+  "description": "Your personal museum — open-access art for every screen.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

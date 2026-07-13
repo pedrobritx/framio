@@ -22,10 +22,11 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   metadataBase: new URL('https://pedrobritx.github.io/framio/'),
   title: 'Framio — Your personal museum',
-  description: 'Curated art for your Samsung Frame TV.',
+  description: "Open-access art from the world's museums, framed for any screen.",
   openGraph: {
     title: 'Framio — Your personal museum',
-    description: 'Curated art for your Samsung Frame TV.',
+    description:
+      "Open-access art from the world's museums, framed for any screen.",
     type: 'website',
   },
 };
