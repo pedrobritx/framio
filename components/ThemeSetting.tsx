@@ -47,14 +47,14 @@ export default function ThemeSetting() {
   }, []);
 
   return (
-    <div className="flex items-baseline justify-between gap-6 border-t border-stone py-4">
+    <div className="flex flex-col gap-2 border-t border-stone py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
       <div>
         <p className="text-sm">Theme</p>
         <p className="mt-1 text-xs text-ink-soft">
           Light “Gallery Wall” / Dark “Exhibition Room”.
         </p>
       </div>
-      <div className="flex shrink-0 overflow-hidden rounded-full border border-stone">
+      <div className="flex w-fit overflow-hidden rounded-full border border-stone sm:shrink-0">
         {OPTIONS.map((o) => {
           const active = choice === o.id;
           return (

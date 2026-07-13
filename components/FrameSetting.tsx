@@ -27,15 +27,15 @@ export default function FrameSetting({
   const selected = frameById(id);
 
   return (
-    <div className="flex items-baseline justify-between gap-6 border-t border-stone py-4">
+    <div className="flex flex-col gap-2 border-t border-stone py-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
       <div>
-        <p className="text-sm">Your TV</p>
+        <p className="text-sm">Your Frame TV size</p>
         <p className="mt-1 text-xs text-ink-soft">
           {selected.width}×{selected.height} · sRGB. Every Frame is 16:9 — size
           only changes the export resolution.
         </p>
       </div>
-      <div className="flex shrink-0 flex-wrap justify-end gap-1">
+      <div className="flex flex-wrap gap-1 sm:shrink-0 sm:justify-end">
         {FRAME_SIZES.map((s) => {
           const active = s.id === id;
           return (

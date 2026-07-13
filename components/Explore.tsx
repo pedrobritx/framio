@@ -53,21 +53,30 @@ export default function Explore({
     <div className="px-6 py-8 md:px-10 md:py-12">
       {/* Masthead */}
       <header className="max-w-3xl">
-        <p className="eyebrow">Framio · your personal museum</p>
+        <p className="eyebrow">Framio · a living museum</p>
         <h1 className="mt-2 font-editorial text-4xl leading-tight md:text-6xl">
           What are you in the mood for?
         </h1>
         <p className="mt-4 max-w-xl text-ink-soft">
-          A living gallery for your Frame TV — public-domain masterpieces from the
-          world&apos;s museums, curated by mood, colour, and theme, framed for your wall.
+          A living museum for every screen — a calm place to wander the open
+          collections of the world, curated by mood, colour, and theme, free for
+          everyone.
         </p>
         <Link
-          href="/search/"
-          className="mt-6 inline-flex items-center gap-2 border border-stone px-4 py-3 text-sm text-ink transition-colors duration-300 ease-gallery hover:border-brass hover:text-brass-text"
+          href="/about/"
+          className="mt-3 inline-block text-sm italic text-ink-soft transition-colors hover:text-brass-text"
         >
-          <SearchIcon className="text-base text-ink-soft" />
-          Search artists, movements, subjects…
+          &ldquo;Art belongs on the walls of the living.&rdquo; — read the manifesto →
         </Link>
+        <div>
+          <Link
+            href="/search/"
+            className="mt-6 inline-flex items-center gap-2 border border-stone px-4 py-3 text-sm text-ink transition-colors duration-300 ease-gallery hover:border-brass hover:text-brass-text"
+          >
+            <SearchIcon className="text-base text-ink-soft" />
+            Search artists, movements, subjects…
+          </Link>
+        </div>
       </header>
 
       {/* Hero — Artwork of the Day */}

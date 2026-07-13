@@ -122,3 +122,6 @@ export const MEDIUMS: string[] = [
   'Ceramics',
   'Textiles',
 ];
+
+/** Framio opens on paintings — the medium most people picture first. */
+export const DEFAULT_MEDIUM = MEDIUMS[0];

@@ -27,10 +27,11 @@ artist's credit embedded in the file.
 
 ## Why
 
-Frame TV owners hunt for high-quality public-domain art, download it by hand, crop it, and lose
-quality along the way — and there was nowhere calm to just *live* with open-access art across all
-their screens. Framio replaces that with a gallery-like app that **discovers, curates, frames, and
-credits** art for you. It is not a wallpaper manager — it is a quiet way to keep art close.
+People who want fine art on their screens hunt for high-quality public-domain images, download them
+by hand, crop them, and lose quality along the way — and there was nowhere calm to just *live* with
+open-access art across all their screens. Framio replaces that with a gallery-like app that
+**discovers, curates, frames, and credits** art for you. It is not a wallpaper manager — it is a
+quiet way to keep art close.
 
 ## What it does
 
@@ -40,8 +41,9 @@ credits** art for you. It is not a wallpaper manager — it is a quiet way to ke
 - **Browse by colour** — choose a swatch and works are ranked by perceptual distance to it,
   powered by the **Art Institute of Chicago**'s published dominant-colour data — a keyless take
   on Google's Art Palette.
-- **"Fits your Frame" filter** — every Frame is 16:9, so aspect ratio is a first-class facet:
-  keep only works that crop cleanly to the wall, flagged with a `16:9` badge on each card.
+- **"Fits your Frame" filter** — aspect ratio is a first-class facet: keep only works that crop
+  cleanly to 16:9 (the Frame TV's native shape), flagged with a `16:9` badge on each card. Frame
+  Studio's device presets extend the same idea to phone, tablet, and desktop shapes.
 - **Search** open-access collections from **The Met**, the **Art Institute of Chicago**, the
   **Cleveland Museum of Art**, **Statens Museum for Kunst (SMK)**, and **Wikimedia Commons** at
   once — keyless, CC0, live from the browser — by artist (one-tap Monet, Van Gogh, Vermeer…),
