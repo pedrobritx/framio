@@ -288,6 +288,113 @@ export function LinkedInIcon({ className }: IconProps) {
   );
 }
 
+export function PlayIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      width="1em"
+      height="1em"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path d="M6 4.5v15l13-7.5z" />
+    </svg>
+  );
+}
+
+export function PauseIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      width="1em"
+      height="1em"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z" />
+    </svg>
+  );
+}
+
+export function PrevIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      width="1em"
+      height="1em"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M15 5 8 12l7 7" />
+    </svg>
+  );
+}
+
+export function NextIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      width="1em"
+      height="1em"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="m9 5 7 7-7 7" />
+    </svg>
+  );
+}
+
+export function CloseIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      width="1em"
+      height="1em"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  );
+}
+
+export function MailIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      width="1em"
+      height="1em"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x={3} y={5} width="18" height="14" rx="2" />
+      <path d="m4 7 8 6 8-6" />
+    </svg>
+  );
+}
+
 export function CoffeeIcon({ className }: IconProps) {
   return (
     <svg

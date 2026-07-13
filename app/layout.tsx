@@ -4,6 +4,9 @@ import '../styles/tokens.css';
 import './globals.css';
 import NavRail from '@/components/NavRail';
 import ScrollReset from '@/components/ScrollReset';
+import SpatialNav from '@/components/SpatialNav';
+import Shortcuts from '@/components/Shortcuts';
+import Announcer from '@/components/Announcer';
 import { THEME_BOOT_SCRIPT } from '@/components/ThemeToggle';
 
 const inter = Inter({
@@ -56,6 +59,9 @@ export default function RootLayout({
           Skip to content
         </a>
         <ScrollReset />
+        <SpatialNav />
+        <Shortcuts />
+        <Announcer />
         {/* Fixed-height app shell: the content pane scrolls internally so the
             mobile bottom bar lives in normal flow and never floats over the
             page as the iOS browser chrome shows and hides. */}

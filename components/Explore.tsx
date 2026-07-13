@@ -5,6 +5,8 @@ import { artworkHref } from '@/lib/links';
 import { COLORS, EXHIBITIONS, MOODS } from '@/lib/curation';
 import { ARTISTS } from '@/lib/facets';
 import { artAlt } from '@/lib/a11y';
+import { watchHref } from '@/lib/watch';
+import { PlayIcon } from '@/components/icons';
 import type { Artwork } from '@/lib/types';
 import { SearchIcon } from '@/components/icons';
 
@@ -83,17 +85,26 @@ export default function Explore({
                 loading="eager"
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-gallery group-hover:scale-[1.03]"
               />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-5 md:p-7">
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-5 md:p-7">
                 <p className="font-editorial text-2xl text-white md:text-3xl">
                   {hero.title}
                 </p>
-                <p className="text-white/80">
+                <p className="text-white/85">
                   {hero.artist}
                   {hero.year ? `, ${hero.year}` : ''}
                 </p>
               </div>
             </div>
           </Link>
+          <div className="mt-4">
+            <Link
+              href={watchHref()}
+              className="inline-flex items-center gap-2 border border-stone px-4 py-2 text-sm transition-colors duration-300 ease-gallery hover:border-brass"
+            >
+              <PlayIcon className="text-brass" />
+              Watch today’s gallery
+            </Link>
+          </div>
         </section>
       )}
 

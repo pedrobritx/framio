@@ -11,14 +11,15 @@ import {
   type Collection,
 } from '@/lib/store';
 import { artworkHref, studioHref } from '@/lib/links';
+import { watchHref } from '@/lib/watch';
 import type { Artwork } from '@/lib/types';
 import ArtImage from '@/components/ArtImage';
 import BundleExport from '@/components/BundleExport';
+import { PlayIcon } from '@/components/icons';
 
 function frameHref(art: Artwork) {
-  return art.source === 'upload'
-    ? studioHref({ id: art.id, title: art.title })
-    : studioHref({ src: art.imageUrl, title: art.title });
+  // Link by id so Studio can embed the work's credit metadata into the export.
+  return studioHref({ id: art.id, title: art.title });
 }
 
 function NewCollectionForm() {
@@ -102,7 +103,16 @@ function CollectionDetail({
             frame
           </p>
         </div>
-        <div className="flex gap-3 text-sm">
+        <div className="flex items-center gap-3 text-sm">
+          {collection.items.length > 0 && (
+            <Link
+              href={watchHref({ collection: collection.id })}
+              className="inline-flex items-center gap-2 border border-stone px-3 py-1.5 transition-colors hover:border-brass"
+            >
+              <PlayIcon className="text-brass" />
+              Watch
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => {

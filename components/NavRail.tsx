@@ -10,6 +10,7 @@ import {
   InfoIcon,
   LibraryIcon,
   LinkedInIcon,
+  PlayIcon,
   SearchIcon,
   SettingsIcon,
   StudioIcon,
@@ -45,6 +46,12 @@ const PRIMARY: NavItem[] = [
     label: 'Collections',
     Icon: CollectionsIcon,
     match: (p) => p.startsWith('/collections'),
+  },
+  {
+    href: '/watch',
+    label: 'Watch',
+    Icon: PlayIcon,
+    match: (p) => p.startsWith('/watch'),
   },
   {
     href: '/studio',
@@ -163,7 +170,7 @@ export default function NavRail() {
           floating), opaque for legibility, padded past the home-indicator. */}
       <nav
         aria-label="Primary"
-        className="order-3 grid shrink-0 grid-cols-4 border-t border-stone bg-paper pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_8px_rgba(28,27,25,0.06)] md:hidden"
+        className="order-3 grid shrink-0 grid-cols-5 border-t border-stone bg-paper pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_8px_rgba(28,27,25,0.06)] md:hidden"
       >
         {PRIMARY.map(({ href, label, Icon, match }) => {
           const active = match(pathname);
@@ -172,7 +179,7 @@ export default function NavRail() {
               key={href}
               href={href}
               aria-current={active ? 'page' : undefined}
-              className={`flex flex-col items-center gap-1 pb-2.5 pt-3 text-[0.7rem] uppercase tracking-label transition-colors duration-300 ease-gallery ${
+              className={`flex flex-col items-center gap-1 pb-2.5 pt-3 text-[0.65rem] uppercase tracking-label transition-colors duration-300 ease-gallery ${
                 active ? 'text-brass' : 'text-ink-soft'
               }`}
             >

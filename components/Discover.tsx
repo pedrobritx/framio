@@ -307,6 +307,7 @@ export default function Discover({
         <label className="flex min-w-0 flex-1 items-center gap-3 border border-stone bg-paper px-4 transition-colors focus-within:border-brass">
           <SearchIcon className="shrink-0 text-lg text-ink-soft" />
           <input
+            id="artwork-search"
             type="search"
             value={state.text}
             onChange={(e) => update({ text: e.target.value })}
