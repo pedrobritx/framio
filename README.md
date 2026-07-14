@@ -107,6 +107,45 @@ The app ships as a **static export** (`next build` with `output: 'export'`) host
 To enable it once: **Settings → Pages → Build and deployment → Source: GitHub Actions.** The base
 path (`/framio`) is injected automatically from the Pages config via `PAGES_BASE_PATH`.
 
+
+### Custom domain setup: `britx.me/framio`
+
+Framio is a **project page**, so it should stay under `/framio` when the account-level GitHub
+Pages domain moves from `pedrobritx.github.io` to `britx.me`. If a browser says it cannot find
+`britx.me`, fix DNS first; this repository already builds with `/framio` as the Pages base path.
+
+In Namecheap, open **Domain List → britx.me → Manage → Advanced DNS** and add these records:
+
+| Type | Host | Value | TTL | Why |
+| --- | --- | --- | --- | --- |
+| `TXT` | `_github-pages-challenge-pedrobritx` | `4c0068fd5289cdc33519f926a103c5` | Automatic | Verifies the domain for GitHub Pages |
+| `A` | `@` | `185.199.108.153` | Automatic | GitHub Pages apex domain |
+| `A` | `@` | `185.199.109.153` | Automatic | GitHub Pages apex domain |
+| `A` | `@` | `185.199.110.153` | Automatic | GitHub Pages apex domain |
+| `A` | `@` | `185.199.111.153` | Automatic | GitHub Pages apex domain |
+| `CNAME` | `www` | `pedrobritx.github.io` | Automatic | Optional `www.britx.me` redirect target |
+
+Namecheap appends the domain automatically, so the TXT host should be entered as
+`_github-pages-challenge-pedrobritx`, not the full
+`_github-pages-challenge-pedrobritx.britx.me`. Put the random GitHub verification code in the
+TXT **Value** field; do not put `_github-pages-challenge-pedrobritx` in Value. After propagation,
+click **Verify** in GitHub's Pages domain settings.
+
+Do not point the `britx.me` apex at the standalone Vercel deployment unless Vercel is intended to
+host the whole domain. `https://framio-lemon.vercel.app` can remain a preview/alternate deployment,
+but DNS for `britx.me/framio` is controlled by the apex domain (`britx.me`) and GitHub Pages serves
+the `/framio` project path.
+
+#### Enabling HTTPS
+
+If the browser says `britx.me` is insecure, first use `https://britx.me/framio/` instead of
+`http://britx.me/framio/`. Then open the GitHub Pages settings for the site that owns the custom
+domain, wait until GitHub finishes issuing the certificate, and enable **Enforce HTTPS**. If the
+checkbox is disabled, re-check that the apex `A` records point only to GitHub Pages and remove any
+conflicting `A`, `AAAA`, ALIAS, ANAME, or forwarding records for `@`; GitHub cannot issue the
+certificate while DNS still points somewhere else. Certificate provisioning can take up to 24 hours
+after DNS is corrected.
+
 Because GitHub Pages is static (no Node server), the deployed build differs from `npm run dev`:
 
 | Feature | Local dev | Static site |
