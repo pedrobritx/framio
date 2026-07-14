@@ -1,6 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* Keep the existing JS design-token config (colours, fonts, tracking, easing)
+   via v4's back-compat directive rather than porting it all into @theme. */
+@config '../tailwind.config.ts';
 
 @layer base {
   html {
