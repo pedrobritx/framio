@@ -11,8 +11,17 @@ updates:
         update-types:
           - minor
           - patch
+    # Never auto-open major-version PRs. A batch of unrelated major bumps
+    # (Next, Tailwind, TypeScript) once landed together and broke the build;
+    # majors now require a deliberate, tested migration initiated by hand.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
