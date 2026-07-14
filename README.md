@@ -10,8 +10,8 @@ artist's credit embedded in the file.
 > **Status:** v0.2 — a living-museum overhaul: multi-device exports, open art descriptions, ambient
 > Watch mode, and an accessibility-first rebuild.
 
-> **Live demo:** [pedrobritx.github.io/framio](https://pedrobritx.github.io/framio/) — a static
-> showcase deployed via GitHub Actions.
+> **Live demo:** [britx.me/framio](https://britx.me/framio/) — a static showcase deployed via
+> GitHub Actions.
 
 ---
 
