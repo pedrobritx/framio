@@ -4,6 +4,22 @@ All notable changes to Framio are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project aims
 to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Migrated GitHub Pages deployment from a path (`britx.me/framio/`) to a dedicated subdomain
+  (`framio.britx.me`).** The app now defaults to serving from the domain root:
+  - `PAGES_BASE_PATH` (`next.config.mjs`, `lib/basePath.ts`) defaults to empty instead of
+    `/framio`, and is only ever set for a sub-path deployment.
+  - `metadataBase` (`app/layout.tsx`) now resolves from `NEXT_PUBLIC_SITE_URL`
+    (default `https://framio.britx.me`) instead of a hardcoded `pedrobritx.github.io/framio/` URL.
+  - `.github/workflows/deploy.yml` wires both `PAGES_BASE_PATH` and `NEXT_PUBLIC_SITE_URL` from
+    `actions/configure-pages` outputs, so they always match the repo's actual Pages configuration.
+  - `.github/workflows/ci.yml` no longer hardcodes `PAGES_BASE_PATH=/framio`, so CI builds the same
+    way production does.
+  - README rewritten with the subdomain DNS/deploy steps in place of the old project-page setup.
+
 ## [0.2.0] — 2026-07-13
 
 A "living museum" overhaul: art that reaches every screen, credits its makers,

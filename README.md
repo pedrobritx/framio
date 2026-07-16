@@ -10,7 +10,7 @@ artist's credit embedded in the file.
 > **Status:** v0.2 — a living-museum overhaul: multi-device exports, open art descriptions, ambient
 > Watch mode, and an accessibility-first rebuild.
 
-> **Live demo:** [britx.me/framio](https://britx.me/framio/) — a static showcase deployed via
+> **Live demo:** [framio.britx.me](https://framio.britx.me) — a static showcase deployed via
 > GitHub Actions.
 
 ---
@@ -104,47 +104,51 @@ The app ships as a **static export** (`next build` with `output: 'export'`) host
 - **CodeQL** (`.github/workflows/codeql.yml`) scans for vulnerabilities; Dependabot keeps
   dependencies and actions current.
 
-To enable it once: **Settings → Pages → Build and deployment → Source: GitHub Actions.** The base
-path (`/framio`) is injected automatically from the Pages config via `PAGES_BASE_PATH`.
+To enable it once: **Settings → Pages → Build and deployment → Source: GitHub Actions**, then set
+**Custom domain** to `framio.britx.me`. The base path is derived automatically from that
+configuration via `PAGES_BASE_PATH` (see below) — no manual step needed.
 
+### Deployment model: dedicated subdomain, not a path
 
-### Custom domain setup: `britx.me/framio`
+Framio is deployed at the **domain root** of its own subdomain, `framio.britx.me` — not under a
+path on a shared account site (the old `britx.me/framio/` project-page layout). This matters
+because a project page and a subdomain resolve assets, routes, and manifest URLs differently:
 
-Framio is a **project page**, so it should stay under `/framio` when the account-level GitHub
-Pages domain moves from `pedrobritx.github.io` to `britx.me`. If a browser says it cannot find
-`britx.me`, fix DNS first; this repository already builds with `/framio` as the Pages base path.
+- **Base path.** [`next.config.mjs`](next.config.mjs) sets `basePath`/`assetPrefix` from
+  `PAGES_BASE_PATH`, which is empty by default — correct for a subdomain served at `/`.
+  `.github/workflows/deploy.yml` sets it dynamically from
+  `actions/configure-pages`' `base_path` output, which itself resolves to `''` once a custom
+  domain is configured, so no manual value is needed. It would only need to be non-empty again if
+  this app were ever redeployed under a path (e.g. a fork left on `<user>.github.io/<repo>/`) — see
+  [`lib/basePath.ts`](lib/basePath.ts).
+- **Absolute URLs.** [`app/layout.tsx`](app/layout.tsx)'s `metadataBase` (used to resolve Open
+  Graph/canonical URLs) comes from `NEXT_PUBLIC_SITE_URL`, which defaults to
+  `https://framio.britx.me` and is set explicitly in the deploy workflow from
+  `actions/configure-pages`' `base_url` output, so it always matches whatever domain Pages
+  actually serves.
+- **PWA manifest & icons.** [`app/manifest.ts`](app/manifest.ts) and the `icons` block in
+  `app/layout.tsx` prefix their `src`/`href` values with the same base path by hand, since Next
+  does not rewrite arbitrary strings authored inside metadata/manifest output the way it rewrites
+  `<Link>`/`<Image>`.
 
-In Namecheap, open **Domain List → britx.me → Manage → Advanced DNS** and add these records:
+#### DNS (subdomain)
+
+In your DNS provider (e.g. Namecheap **Domain List → britx.me → Manage → Advanced DNS**), point the
+subdomain at GitHub Pages with a `CNAME` record — not the apex `A` records a root-domain setup
+would use:
 
 | Type | Host | Value | TTL | Why |
 | --- | --- | --- | --- | --- |
-| `TXT` | `_github-pages-challenge-pedrobritx` | `4c0068fd5289cdc33519f926a103c5` | Automatic | Verifies the domain for GitHub Pages |
-| `A` | `@` | `185.199.108.153` | Automatic | GitHub Pages apex domain |
-| `A` | `@` | `185.199.109.153` | Automatic | GitHub Pages apex domain |
-| `A` | `@` | `185.199.110.153` | Automatic | GitHub Pages apex domain |
-| `A` | `@` | `185.199.111.153` | Automatic | GitHub Pages apex domain |
-| `CNAME` | `www` | `pedrobritx.github.io` | Automatic | Optional `www.britx.me` redirect target |
+| `CNAME` | `framio` | `pedrobritx.github.io` | Automatic | Routes `framio.britx.me` to GitHub Pages |
 
-Namecheap appends the domain automatically, so the TXT host should be entered as
-`_github-pages-challenge-pedrobritx`, not the full
-`_github-pages-challenge-pedrobritx.britx.me`. Put the random GitHub verification code in the
-TXT **Value** field; do not put `_github-pages-challenge-pedrobritx` in Value. After propagation,
-click **Verify** in GitHub's Pages domain settings.
+Then, in this repo's **Settings → Pages → Custom domain**, enter `framio.britx.me` and click
+**Save** — GitHub verifies ownership and issues the TLS certificate automatically for a `CNAME`-based
+custom domain (no separate `TXT` ownership challenge, which only applies to apex/organization
+domains). Enable **Enforce HTTPS** once the certificate shows as issued; this can take up to a
+few hours after DNS propagates.
 
-Do not point the `britx.me` apex at the standalone Vercel deployment unless Vercel is intended to
-host the whole domain. `https://framio-lemon.vercel.app` can remain a preview/alternate deployment,
-but DNS for `britx.me/framio` is controlled by the apex domain (`britx.me`) and GitHub Pages serves
-the `/framio` project path.
-
-#### Enabling HTTPS
-
-If the browser says `britx.me` is insecure, first use `https://britx.me/framio/` instead of
-`http://britx.me/framio/`. Then open the GitHub Pages settings for the site that owns the custom
-domain, wait until GitHub finishes issuing the certificate, and enable **Enforce HTTPS**. If the
-checkbox is disabled, re-check that the apex `A` records point only to GitHub Pages and remove any
-conflicting `A`, `AAAA`, ALIAS, ANAME, or forwarding records for `@`; GitHub cannot issue the
-certificate while DNS still points somewhere else. Certificate provisioning can take up to 24 hours
-after DNS is corrected.
+`https://framio-lemon.vercel.app` can remain a separate preview/alternate deployment — it's
+unaffected by the `britx.me` DNS above, since it's served from its own `vercel.app` domain.
 
 Because GitHub Pages is static (no Node server), the deployed build differs from `npm run dev`:
 

@@ -8,6 +8,7 @@ import SpatialNav from '@/components/SpatialNav';
 import Shortcuts from '@/components/Shortcuts';
 import Announcer from '@/components/Announcer';
 import { THEME_BOOT_SCRIPT } from '@/components/ThemeToggle';
+import { BASE_PATH, SITE_URL } from '@/lib/basePath';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -22,10 +23,10 @@ const cormorant = Cormorant_Garamond({
   display: 'swap',
 });
 
-const basePath = process.env.PAGES_BASE_PATH ?? '';
+const basePath = BASE_PATH;
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://pedrobritx.github.io/framio/'),
+  metadataBase: new URL(SITE_URL),
   title: 'Framio — Your personal museum',
   description: "Open-access art from the world's museums, framed for any screen.",
   applicationName: 'Framio',

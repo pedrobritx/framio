@@ -1,11 +1,14 @@
 import type { MetadataRoute } from 'next';
+import { BASE_PATH } from '@/lib/basePath';
 
 /**
- * PWA manifest. On GitHub Pages the app lives under /framio, so icon `src`
- * paths are prefixed with PAGES_BASE_PATH by hand — Next prefixes the manifest
- * link and start_url, but not the URLs we author inside it.
+ * PWA manifest. Framio deploys to the domain root by default, but the icon
+ * `src` paths are still prefixed with BASE_PATH by hand — Next prefixes the
+ * manifest's own <link> tag, but not the URLs we author inside the manifest
+ * body, so a sub-path deployment (see lib/basePath.ts) needs it applied here
+ * explicitly.
  */
-const base = process.env.PAGES_BASE_PATH ?? '';
+const base = BASE_PATH;
 
 // The manifest is a build-time constant; required for `output: export`.
 export const dynamic = 'force-static';

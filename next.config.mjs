@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
 
-// GitHub Pages serves this project site under /<repo>/ (e.g. /framio).
-// The deploy workflow sets PAGES_BASE_PATH=/framio; local dev leaves it empty.
+// Framio deploys to its own GitHub Pages subdomain (framio.britx.me), so it
+// is served from the domain root and needs no base path. PAGES_BASE_PATH
+// only needs a value for a sub-path deployment (a GitHub Pages *project*
+// page, a fork, or a preview nested under another host) — see
+// lib/basePath.ts. The deploy workflow derives it automatically from the
+// repo's Pages configuration, so this stays empty for the subdomain setup.
 const basePath = process.env.PAGES_BASE_PATH || '';
 
 const nextConfig = {
