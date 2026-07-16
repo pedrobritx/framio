@@ -28,7 +28,7 @@ Before opening a pull request, make sure all four checks pass:
 npm run typecheck    # tsc --noEmit
 npm run lint         # ESLint + jsx-a11y
 npm test             # Vitest
-npm run build        # static export (set PAGES_BASE_PATH=/framio to mirror Pages)
+npm run build        # static export (root path by default; see lib/basePath.ts)
 ```
 
 ## Guidelines

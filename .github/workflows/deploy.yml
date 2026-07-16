@@ -45,8 +45,13 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # base_path comes from the repo's Pages config (e.g. /framio).
+          # Both come from the repo's Pages config. With the custom subdomain
+          # (framio.britx.me) configured, base_path resolves to '' (domain
+          # root); it only becomes e.g. /framio if Pages falls back to a
+          # project-page URL. base_url is the resolved absolute origin, used
+          # to build canonical/Open Graph URLs.
           PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          NEXT_PUBLIC_SITE_URL: ${{ steps.pages.outputs.base_url }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
