@@ -15,28 +15,28 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.110.3",
-    "next": "^16.2.10",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "sharp": "^0.35.3"
+    "@supabase/supabase-js": "^2.112.4",
+    "next": "^16.3.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.2",
-    "@testing-library/react": "^16.3.2",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^22.20.1",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^6.0.3",
-    "axe-core": "^4.12.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@vitejs/plugin-react": "^6.1.1",
+    "axe-core": "^4.13.0",
     "eslint": "^9.0.0",
-    "eslint-config-next": "^16.2.10",
+    "eslint-config-next": "^16.3.3",
     "eslint-plugin-jsx-a11y": "^6.10.2",
-    "happy-dom": "^20.10.6",
+    "happy-dom": "^20.11.13",
     "postcss": "^8.5.19",
     "tailwindcss": "^4.3.2",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.10",
+    "vitest": "^4.1.11",
     "vitest-axe": "^0.1.0"
   }
 }
