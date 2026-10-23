@@ -15,10 +15,10 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.117.3",
-    "next": "^16.4.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
+    "@supabase/supabase-js": "^2.118.0",
+    "next": "^16.4.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "sharp": "^0.35.5"
   },
   "devDependencies": {
@@ -30,13 +30,13 @@
     "@vitejs/plugin-react": "^6.1.2",
     "axe-core": "^4.14.0",
     "eslint": "^9.0.0",
-    "eslint-config-next": "^16.4.0",
+    "eslint-config-next": "^16.4.2",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "happy-dom": "^20.14.6",
-    "postcss": "^8.5.29",
+    "postcss": "^8.5.30",
     "tailwindcss": "^4.3.2",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.11",
+    "vitest": "^4.1.12",
     "vitest-axe": "^0.1.0"
   }
 }
